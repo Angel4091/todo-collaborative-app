@@ -1,0 +1,63 @@
+@startuml DiagramaActividadV2
+title Diagrama de Actividad v2 - Gestion de Tareas con Concurrencia
+
+|Usuario|
+start
+:Autenticarse en el sistema;
+
+|Sistema|
+if (Credenciales validas?) then (no)
+  :Mostrar error;
+  stop
+else (si)
+endif
+
+|Usuario|
+:Elegir operacion sobre Task;
+
+|Sistema|
+switch (Operacion?)
+case (Crear Task)
+  :Invocar TaskFactory.createItem();
+  :Instanciar Task con status=PENDING;
+  :TaskManager.getInstance();
+  :TaskManager.addTask(task) [synchronized];
+
+case (Compartir Task)
+  :task.addCollaborator(user) [synchronized];
+  :task.addObserver(user);
+  :Agregar task a sharedItems del colaborador;
+
+case (Cambiar estado)
+  :task.modifyStatus(nuevoEstado) [synchronized];
+  :task.notifyObservers();
+
+  fork
+    :TaskWorker hilo 1;
+    :Observer1.update(task);
+  fork again
+    :TaskWorker hilo 2;
+    :Observer2.update(task);
+  fork again
+    :TaskWorker hilo N;
+    :ObserverN.update(task);
+  end fork
+
+  :Todos los colaboradores notificados;
+
+endswitch
+
+if (Usuario es ClassicUser?) then (si)
+  if (Supera limitTask o maxCollaborators?) then (si)
+    :Rechazar operacion;
+    stop
+  else (no)
+  endif
+else (no - PremiumUser)
+endif
+
+:Persistir cambios en TaskManager;
+:Operacion completada;
+stop
+
+@enduml

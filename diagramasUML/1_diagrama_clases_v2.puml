@@ -1,0 +1,192 @@
+@startuml DiagramaClasesV2
+title Diagrama de Clases v2 - Con Patrones (Factory, Strategy, Observer, Singleton) y Concurrencia
+
+' ============================================
+' ENUMS
+' ============================================
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum Status {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+}
+
+' ============================================
+' INTERFACES BASE
+' ============================================
+interface Authenticable {
+  +authenticate(email: String, password: String): boolean
+}
+
+interface Shareable {
+  +addCollaborator(user: User): void
+  +showCollaborators(): void
+  +isShared(): boolean
+}
+
+' ============================================
+' PATRON OBSERVER - Notifica cambios de estado a colaboradores
+' ============================================
+interface TaskObserver {
+  +update(item: Item): void
+}
+
+' ============================================
+' PATRON STRATEGY - Canales de notificacion
+' ============================================
+interface NotificationStrategy {
+  +notify(message: String): void
+}
+
+class EmailNotification implements NotificationStrategy {
+  +notify(message: String): void
+}
+
+class PushNotification implements NotificationStrategy {
+  +notify(message: String): void
+}
+
+class SMSNotification implements NotificationStrategy {
+  +notify(message: String): void
+}
+
+' ============================================
+' PATRON FACTORY METHOD - Creacion de items
+' ============================================
+abstract class ItemFactory {
+  +{abstract} createItem(title: String, description: String, priority: Priority, owner: User): Item
+}
+
+class TaskFactory extends ItemFactory {
+  +createItem(title: String, description: String, priority: Priority, owner: User): Item
+}
+
+class ReminderFactory extends ItemFactory {
+  +createItem(title: String, description: String, priority: Priority, owner: User): Item
+}
+
+' ============================================
+' PATRON SINGLETON + CONCURRENCIA - Gestor central de tareas
+' ============================================
+class TaskManager {
+  -{static} instance: TaskManager
+  -tasks: ConcurrentHashMap<Integer, Item>
+  -lock: ReentrantLock
+  -TaskManager()
+  +{static} getInstance(): TaskManager
+  +{synchronized} addTask(item: Item): void
+  +{synchronized} removeTask(id: int): void
+  +{synchronized} updateTask(item: Item): void
+  +getTask(id: int): Item
+  +getAllTasks(): List<Item>
+}
+
+' ============================================
+' CONCURRENCIA - Hilo trabajador
+' ============================================
+class TaskWorker implements Runnable {
+  -task: Item
+  -action: String
+  -user: User
+  +TaskWorker(task: Item, action: String, user: User)
+  +run(): void
+}
+
+' ============================================
+' JERARQUIA USER (implementa Observer)
+' ============================================
+class User implements Authenticable, TaskObserver {
+  -id: int
+  -name: String
+  -email: String
+  -password: String
+  -createdItems: List<Item>
+  -sharedItems: List<Item>
+  +authenticate(email: String, password: String): boolean
+  +addItem(item: Item): boolean
+  +shareItem(item: Item, user: User): boolean
+  +printCreatedItems(): void
+  +printSharedItems(): void
+  +update(item: Item): void
+}
+
+class PremiumUser extends User {
+  +fullAccess(): boolean
+}
+
+class ClassicUser extends User {
+  -limitTask: int
+  -maxCollaborators: int
+  +addItem(item: Item): boolean
+  +shareItem(item: Item, user: User): boolean
+}
+
+' ============================================
+' JERARQUIA ITEM (con synchronized y Observers)
+' ============================================
+abstract class Item implements Shareable {
+  #id: int
+  #title: String
+  #description: String
+  #priority: Priority
+  #owner: User
+  #collaborators: List<User>
+  #observers: List<TaskObserver>
+  +{synchronized} addCollaborator(user: User): void
+  +{synchronized} removeCollaborator(user: User): void
+  +addObserver(obs: TaskObserver): void
+  +removeObserver(obs: TaskObserver): void
+  +notifyObservers(): void
+  +showCollaborators(): void
+  +isShared(): boolean
+  +{abstract} showDetails(): void
+}
+
+class Task extends Item {
+  -status: Status
+  +showDetails(): void
+  +getStatus(): Status
+  +{synchronized} modifyStatus(status: Status): void
+}
+
+class Reminder extends Item {
+  -dateTime: String
+  -notificationStrategy: NotificationStrategy
+  +showDetails(): void
+  +getDateTime(): String
+  +notifyAlert(): void
+  +setNotificationStrategy(strategy: NotificationStrategy): void
+}
+
+' ============================================
+' RELACIONES
+' ============================================
+User "1" o-- "0..*" Item : posee >
+Item "1" *-- "1" Priority
+Task "1" *-- "1" Status
+Reminder "1" o-- "1" NotificationStrategy : usa >
+Item "1" o-- "0..*" TaskObserver : notifica >
+TaskFactory ..> Task : <<crea>>
+ReminderFactory ..> Reminder : <<crea>>
+TaskManager "1" o-- "0..*" Item : administra >
+TaskWorker ..> Item : procesa >
+
+note right of TaskManager
+  Singleton + thread-safe.
+  Centraliza acceso concurrente
+  a las tareas compartidas.
+end note
+
+note right of Item
+  Observer: cuando cambia
+  el estado, notifica a todos
+  los colaboradores registrados.
+end note
+
+@enduml

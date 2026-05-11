@@ -1,0 +1,61 @@
+@startuml SecuenciaCambiarEstado
+title Secuencia 3 - Cambiar Estado de Task (Observer + Hilos paralelos)
+
+actor "Usuario" as U
+participant ":Task" as task
+participant ":TaskManager" as manager
+participant ":TaskWorker\n(hilo 1)" as w1
+participant ":TaskWorker\n(hilo 2)" as w2
+participant "colab1:User\n<<Observer>>" as c1
+participant "colab2:User\n<<Observer>>" as c2
+
+U -> task : modifyStatus(IN_PROGRESS)
+activate task
+
+task -> task : synchronized(this)
+note right of task
+  Synchronized garantiza
+  que dos hilos no cambien
+  el status al mismo tiempo
+end note
+task -> task : this.status = IN_PROGRESS
+
+task -> manager : updateTask(this)
+activate manager
+manager --> task
+deactivate manager
+
+task -> task : notifyObservers()
+note right of task
+  Patron Observer:
+  notifica a cada colaborador
+  registrado, en su propio hilo
+end note
+
+' === EJECUCION PARALELA DE HILOS ===
+par notificacion paralela
+  task -> w1 : new TaskWorker(this, "update", colab1)
+  activate w1
+  w1 -> w1 : Thread.start()
+  w1 -> c1 : update(task)
+  activate c1
+  c1 -> c1 : refrescar vista local
+  c1 --> w1
+  deactivate c1
+  deactivate w1
+else
+  task -> w2 : new TaskWorker(this, "update", colab2)
+  activate w2
+  w2 -> w2 : Thread.start()
+  w2 -> c2 : update(task)
+  activate c2
+  c2 -> c2 : refrescar vista local
+  c2 --> w2
+  deactivate c2
+  deactivate w2
+end
+
+task --> U : void
+deactivate task
+
+@enduml

@@ -1,0 +1,53 @@
+@startuml SecuenciaCrearTask
+title Secuencia 1 - Crear Task usando Factory Method + TaskManager (Singleton)
+
+actor Usuario as U
+participant ":User" as user
+participant ":TaskFactory" as factory
+participant ":Task" as task
+participant ":TaskManager" as manager
+
+U -> user : addItem(...)
+activate user
+
+user -> factory : createItem(title, desc, HIGH, owner)
+activate factory
+note right of factory
+  Factory Method:
+  TaskFactory decide instanciar Task
+  (cliente no usa "new" directamente)
+end note
+
+factory -> task : new Task(title, desc, HIGH, owner)
+activate task
+task -> task : status = PENDING
+task --> factory : task
+deactivate task
+
+factory --> user : task
+deactivate factory
+
+user -> user : createdItems.add(task)
+
+user -> manager : getInstance()
+activate manager
+note right of manager
+  Singleton: una sola
+  instancia para todo
+  el sistema
+end note
+manager --> user : instance
+deactivate manager
+
+user -> manager : addTask(task)
+activate manager
+manager -> manager : lock.lock()
+manager -> manager : tasks.put(task.id, task)
+manager -> manager : lock.unlock()
+manager --> user : void
+deactivate manager
+
+user --> U : true
+deactivate user
+
+@enduml

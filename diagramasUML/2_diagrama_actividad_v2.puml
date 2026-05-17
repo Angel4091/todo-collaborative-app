@@ -1,9 +1,9 @@
 @startuml DiagramaActividadV2
-title Diagrama de Actividad v2 - Flujo de gestion de tareas con concurrencia\n(Entregable 2 - Patron Strategy + Threads)
+title Diagrama de Actividad v2 - Flujo de gestion de tareas\n(Entregable 2 - ciclo de vida de una Task con concurrencia)
 
-|Usuario|
+|Usuario Owner|
 start
-:Autenticarse en el sistema;
+:Iniciar sesion (email, password);
 
 |Sistema|
 if (Credenciales validas?) then (no)
@@ -12,100 +12,59 @@ if (Credenciales validas?) then (no)
 else (si)
 endif
 
-|Usuario|
-:Elegir operacion sobre el item;
+|Usuario Owner|
+:Crear Task (titulo, descripcion, prioridad);
 
 |Sistema|
-switch (Operacion?)
-case (Crear Task)
-  :Generar id con AtomicInteger;
-  :task = new Task(id, titulo, desc, prioridad, owner);
-  note right
-    Sin Factory: el cliente
-    instancia Task directamente.
-    status inicial = PENDING.
-  end note
-  :owner.addItem(task);
-  if (owner es ClassicUser y supera limitTask?) then (si)
-    :Rechazar y retornar false;
-    stop
-  else (no)
-  endif
-  :items.put(task.id, task) en ConcurrentHashMap;
+:Generar id con AtomicInteger;
+:task = new Task(id, titulo, desc, prioridad, owner);
+note right
+  status inicial = PENDING
+  collaborators = CopyOnWriteArrayList
+end note
+:owner.addItem(task);
+:Registrar task en items (ConcurrentHashMap);
 
-case (Crear Reminder)
-  :Generar id con AtomicInteger;
-  :reminder = new Reminder(id, titulo, desc, prioridad, owner, dateTime);
-  :Seleccionar NotificationStrategy
-   (EmailNotification o MensajeTextoNotification);
-  note right
-    PATRON STRATEGY: la estrategia
-    de notificacion se inyecta en
-    tiempo de ejecucion via
-    reminder.setNotificationStrategy()
-  end note
-  :reminder.setNotificationStrategy(strategy);
-  :owner.addItem(reminder);
-  :items.put(reminder.id, reminder);
+|Usuario Owner|
+:Compartir task con colaboradores
+ (Maria y Pedro);
 
-case (Compartir item)
-  if (Es el owner del item?) then (no)
-    :Solo el owner puede compartir;
-    stop
-  else (si)
-  endif
-  if (owner es ClassicUser y supera maxCollaborators?) then (si)
-    :Rechazar y retornar false;
-    stop
-  else (no)
-  endif
-  :item.addCollaborator(colab) [synchronized];
-  note right
-    synchronized garantiza que dos
-    hilos no agreguen colaboradores
-    al mismo item al mismo tiempo.
-    Internamente tambien actualiza
-    colab.sharedItems.
-  end note
+|Sistema|
+:task.addCollaborator(maria) [synchronized];
+:task.addCollaborator(pedro) [synchronized];
+note right
+  addCollaborator esta synchronized:
+  evita que dos hilos modifiquen la
+  lista de colaboradores en simultaneo.
+end note
 
-case (Cambiar estado de Task)
-  ' === EJECUCION CONCURRENTE ===
-  fork
-    |Hilo Maria|
-    :TaskWorker(task, IN_PROGRESS, maria).run();
-    :task.modifyStatus(IN_PROGRESS)
-     [synchronized];
-  fork again
-    |Hilo Pedro|
-    :TaskWorker(task, COMPLETED, pedro).run();
-    :task.modifyStatus(COMPLETED)
-     [synchronized];
-  end fork
-  |Sistema|
-  :Solo un hilo entra a la
-   seccion critica a la vez;
-  note right
-    CONCURRENCIA: aunque varios
-    hilos llamen modifyStatus en
-    paralelo sobre la misma Task,
-    el monitor (synchronized) los
-    serializa. El ultimo en entrar
-    deja el estado final.
-  end note
+|Colaboradores|
+:Cada colaborador intenta cambiar
+ el estado de la task COMPARTIDA
+ desde su propio hilo;
 
-case (Disparar alerta Reminder)
-  :reminder.notifyAlert();
-  :strategy.notify(mensaje);
-  note right
-    Aqui se ve Strategy en accion:
-    el mismo notifyAlert() despacha
-    a Email o Mensaje de Texto
-    segun la estrategia asignada.
-  end note
+|Sistema|
+fork
+  :Hilo "Hilo-Maria";
+  :new TaskWorker(task, IN_PROGRESS, maria);
+  :task.modifyStatus(IN_PROGRESS) [synchronized];
+fork again
+  :Hilo "Hilo-Pedro";
+  :new TaskWorker(task, COMPLETED, pedro);
+  :task.modifyStatus(COMPLETED) [synchronized];
+end fork
 
-endswitch
+:Los hilos se serializan en el monitor de la task;
+note right
+  CONCURRENCIA:
+  synchronized garantiza que solo
+  un hilo este modificando el status
+  en un momento dado. El ultimo en
+  entrar deja el estado final.
+end note
 
-:Operacion completada;
+:join() de ambos hilos;
+:Mostrar estado final de la task;
 stop
 
 @enduml

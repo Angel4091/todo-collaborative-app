@@ -1,50 +1,61 @@
 @startuml SecuenciaCompartirTask
-title Secuencia 2 - Compartir Task (con sincronizacion + registro Observer)
+title Secuencia 2 - Compartir Task\n(synchronized para evitar race conditions)
 
-actor "Usuario Owner" as U1
+actor "Usuario Owner" as U
+participant ":MainMenu" as menu
 participant ":User\n(owner)" as owner
 participant ":Task" as task
+participant "collaborators:\nCopyOnWriteArrayList" as list
 participant ":User\n(colaborador)" as colab
-participant ":TaskManager" as manager
 
-U1 -> owner : shareItem(task, colab)
+U -> menu : opcion "3. Compartir item"
+activate menu
+menu -> menu : leer id del item y email del colab
+
+menu -> owner : shareItem(task, colab)
 activate owner
 
-owner -> task : addCollaborator(colab)
-activate task
-note right of task
-  Metodo synchronized:
-  evita race conditions si
-  varios hilos comparten
-  la misma task al mismo tiempo
-end note
+alt owner es ClassicUser y supera maxCollaborators
+  owner --> menu : false
+  menu --> U : "Limite de colaboradores alcanzado"
+else
+  owner -> task : addCollaborator(colab)
+  activate task
+  note right of task
+    addCollaborator esta marcado como
+    synchronized. Si dos hilos intentan
+    compartir la misma task al mismo
+    tiempo, solo uno entra y el otro
+    espera.
+  end note
 
-task -> task : synchronized(this)
-task -> task : collaborators.add(colab)
+  task -> task : synchronized (this)
 
-task -> task : addObserver(colab)
-note right of task
-  El colaborador queda
-  registrado como Observer
-  para futuras notificaciones
-end note
-task -> task : observers.add(colab)
+  task -> list : contains(colab)?
+  activate list
+  list --> task : false
+  deactivate list
 
-task -> colab : sharedItems.add(this)
-activate colab
-colab --> task
-deactivate colab
+  task -> list : add(colab)
+  activate list
+  list --> task
+  deactivate list
 
-task --> owner : void
-deactivate task
+  task -> colab : getSharedItems().add(this)
+  activate colab
+  colab --> task
+  deactivate colab
 
-owner -> manager : updateTask(task)
-activate manager
-manager -> manager : synchronized update
-manager --> owner : void
-deactivate manager
+  task -> task : System.out.println(\n  "[Item ...] colab agregado")
 
-owner --> U1 : true
+  task --> owner : void
+  deactivate task
+
+  owner --> menu : true
+end
 deactivate owner
+
+menu --> U : confirmacion
+deactivate menu
 
 @enduml

@@ -1,61 +1,89 @@
 @startuml SecuenciaCambiarEstado
-title Secuencia 3 - Cambiar Estado de Task (Observer + Hilos paralelos)
+title Secuencia 3 - Cambiar estado de Task con concurrencia\n(Threads paralelos + synchronized)
 
-actor "Usuario" as U
-participant ":Task" as task
-participant ":TaskManager" as manager
-participant ":TaskWorker\n(hilo 1)" as w1
-participant ":TaskWorker\n(hilo 2)" as w2
-participant "colab1:User\n<<Observer>>" as c1
-participant "colab2:User\n<<Observer>>" as c2
+actor "Usuario\n(disparador)" as U
+participant ":DemoRunner" as demo
+participant "task:Task\n(compartida)" as task
+participant ":TaskWorker\n(hilo Maria)" as w1
+participant ":TaskWorker\n(hilo Pedro)" as w2
+participant ":Thread\n(Hilo-Maria)" as t1
+participant ":Thread\n(Hilo-Pedro)" as t2
 
-U -> task : modifyStatus(IN_PROGRESS)
-activate task
+U -> demo : runDemo()
+activate demo
 
-task -> task : synchronized(this)
-note right of task
-  Synchronized garantiza
-  que dos hilos no cambien
-  el status al mismo tiempo
-end note
-task -> task : this.status = IN_PROGRESS
-
-task -> manager : updateTask(this)
-activate manager
-manager --> task
-deactivate manager
-
-task -> task : notifyObservers()
-note right of task
-  Patron Observer:
-  notifica a cada colaborador
-  registrado, en su propio hilo
+demo -> task : new Task(...) y compartir con Maria y Pedro
+note right
+  La task t1 esta compartida.
+  Maria y Pedro intentaran
+  cambiar su estado al mismo
+  tiempo desde hilos distintos.
 end note
 
-' === EJECUCION PARALELA DE HILOS ===
-par notificacion paralela
-  task -> w1 : new TaskWorker(this, "update", colab1)
-  activate w1
-  w1 -> w1 : Thread.start()
-  w1 -> c1 : update(task)
-  activate c1
-  c1 -> c1 : refrescar vista local
-  c1 --> w1
-  deactivate c1
+demo -> w1 : new TaskWorker(t1, IN_PROGRESS, maria)
+activate w1
+demo -> w2 : new TaskWorker(t1, COMPLETED, pedro)
+activate w2
+
+demo -> t1 : new Thread(w1, "Hilo-Maria")
+activate t1
+demo -> t2 : new Thread(w2, "Hilo-Pedro")
+activate t2
+
+' === ARRANQUE DE LOS HILOS ===
+demo -> t1 : start()
+demo -> t2 : start()
+
+' === EJECUCION CONCURRENTE ===
+par ejecucion paralela
+  t1 -> w1 : run()
+  w1 -> w1 : sleep(100)
+  w1 -> task : modifyStatus(IN_PROGRESS)
+  activate task
+  note right of task
+    PRIMER hilo en obtener el
+    monitor de 'task'. El otro
+    queda bloqueado esperando.
+  end note
+  task -> task : synchronized(this)
+  task -> task : status = IN_PROGRESS
+  task -> task : log "PENDING -> IN_PROGRESS"
+  task --> w1
+  deactivate task
+  w1 --> t1
   deactivate w1
 else
-  task -> w2 : new TaskWorker(this, "update", colab2)
-  activate w2
-  w2 -> w2 : Thread.start()
-  w2 -> c2 : update(task)
-  activate c2
-  c2 -> c2 : refrescar vista local
-  c2 --> w2
-  deactivate c2
+  t2 -> w2 : run()
+  w2 -> w2 : sleep(100)
+  w2 -> task : modifyStatus(COMPLETED)
+  activate task
+  note right of task
+    SEGUNDO hilo: entra cuando
+    el primero libera el monitor.
+    synchronized garantiza que
+    no haya estado intermedio
+    corrupto.
+  end note
+  task -> task : synchronized(this)
+  task -> task : status = COMPLETED
+  task -> task : log "IN_PROGRESS -> COMPLETED"
+  task --> w2
+  deactivate task
+  w2 --> t2
   deactivate w2
 end
 
-task --> U : void
+demo -> t1 : join()
+deactivate t1
+demo -> t2 : join()
+deactivate t2
+
+demo -> task : showDetails()
+activate task
+task --> demo : estado final = COMPLETED
 deactivate task
+
+demo --> U : "Fin del demo"
+deactivate demo
 
 @enduml

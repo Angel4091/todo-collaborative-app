@@ -60,15 +60,17 @@ class SMSNotification implements NotificationStrategy {
 ' PATRON FACTORY METHOD - Creacion de items
 ' ============================================
 abstract class ItemFactory {
-  +{abstract} createItem(title: String, description: String, priority: Priority, owner: User): Item
+  +{abstract} createItem(id: int, title: String, description: String, priority: Priority, owner: User): Item
 }
 
 class TaskFactory extends ItemFactory {
-  +createItem(title: String, description: String, priority: Priority, owner: User): Item
+  +createItem(id: int, title: String, description: String, priority: Priority, owner: User): Item
 }
 
 class ReminderFactory extends ItemFactory {
-  +createItem(title: String, description: String, priority: Priority, owner: User): Item
+  -dateTime: String
+  +ReminderFactory(dateTime: String)
+  +createItem(id: int, title: String, description: String, priority: Priority, owner: User): Item
 }
 
 ' ============================================
@@ -153,6 +155,8 @@ class Task extends Item {
   +showDetails(): void
   +getStatus(): Status
   +{synchronized} modifyStatus(status: Status): void
+  ' modifyStatus crea un Thread(TaskWorker)
+  ' por cada Observer registrado
 }
 
 class Reminder extends Item {
@@ -187,6 +191,14 @@ note right of Item
   Observer: cuando cambia
   el estado, notifica a todos
   los colaboradores registrados.
+end note
+
+note bottom of Task
+  Concurrencia: modifyStatus()
+  es synchronized y lanza un
+  Thread(TaskWorker) por cada
+  Observer para notificar en
+  paralelo sin bloquear al caller.
 end note
 
 @enduml

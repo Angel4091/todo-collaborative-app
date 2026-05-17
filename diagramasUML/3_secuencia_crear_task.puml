@@ -1,64 +1,61 @@
 @startuml SecuenciaCrearTask
-title Secuencia 1 - Crear Task usando Factory Method + TaskManager (Singleton)
+title Secuencia 1 - Crear Task\n(instanciacion directa + registro en items)
 
 actor Usuario as U
 participant ":MainMenu" as menu
-participant ":AtomicInteger" as ids
-participant ":TaskFactory" as factory
+participant ":AtomicInteger\n(idCounter)" as ids
 participant ":Task" as task
-participant ":User" as user
-participant ":TaskManager" as manager
+participant ":User\n(owner)" as user
+participant "items:\nConcurrentHashMap" as map
 
 U -> menu : opcion "1. Crear Task"
 activate menu
 
+menu -> menu : leer titulo, descripcion, prioridad
+
 menu -> ids : getAndIncrement()
 activate ids
+note right of ids
+  AtomicInteger garantiza ids
+  unicos incluso si dos hilos
+  crean tasks al mismo tiempo.
+end note
 ids --> menu : nextId
 deactivate ids
 
-menu -> factory : createItem(nextId, title, desc, HIGH, owner)
-activate factory
-note right of factory
-  Factory Method:
-  TaskFactory decide instanciar Task
-  (cliente no usa "new" directamente)
-end note
-
-factory -> task : new Task(nextId, title, desc, HIGH, owner)
+menu -> task : new Task(nextId, titulo, desc, prioridad, owner)
 activate task
+note right of task
+  Sin Factory: el cliente
+  instancia Task con new
+  directamente.
+end note
+task -> task : super(...) en Item
+task -> task : collaborators = new CopyOnWriteArrayList()
 task -> task : status = PENDING
-task -> task : collaborators = synchronizedList()
-task -> task : observers = synchronizedList()
-task --> factory : task
+task --> menu : task
 deactivate task
-
-factory --> menu : task
-deactivate factory
 
 menu -> user : addItem(task)
 activate user
-user -> user : createdItems.add(task)
-user --> menu : true
+alt owner es PremiumUser
+  user -> user : createdItems.add(task)
+  user --> menu : true
+else owner es ClassicUser y supera limitTask
+  user --> menu : false
+  menu --> U : "Limite de items alcanzado"
+end
 deactivate user
 
-menu -> manager : getInstance()
-activate manager
-note right of manager
-  Singleton thread-safe:
-  double-checked locking
-  con volatile + MUTEX
+menu -> map : put(task.id, task)
+activate map
+note right of map
+  ConcurrentHashMap permite
+  inserciones concurrentes
+  sin lockear toda la tabla.
 end note
-manager --> menu : instance
-deactivate manager
-
-menu -> manager : addTask(task)
-activate manager
-manager -> manager : lock.lock()
-manager -> manager : tasks.put(task.id, task)
-manager -> manager : lock.unlock()  (finally)
-manager --> menu : void
-deactivate manager
+map --> menu : void
+deactivate map
 
 menu --> U : "Task creada con ID " + task.getId()
 deactivate menu

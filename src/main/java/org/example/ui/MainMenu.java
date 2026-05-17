@@ -9,32 +9,28 @@ import org.example.model.Reminder;
 import org.example.model.Task;
 import org.example.model.User;
 import org.example.patterns.EmailNotification;
-import org.example.patterns.ItemFactory;
+import org.example.patterns.MensajeTextoNotification;
 import org.example.patterns.NotificationStrategy;
-import org.example.patterns.PushNotification;
-import org.example.patterns.ReminderFactory;
-import org.example.patterns.SMSNotification;
-import org.example.patterns.TaskFactory;
 import org.example.service.AuthService;
-import org.example.service.TaskManager;
 import org.example.service.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainMenu {
     private final Scanner scanner = new Scanner(System.in);
     private final UserService userService;
     private final AuthService authService;
-    private final TaskManager taskManager;
+    private final ConcurrentHashMap<Integer, Item> items = new ConcurrentHashMap<>();
     private final AtomicInteger idCounter = new AtomicInteger(1);
     private User currentUser;
 
     public MainMenu() {
         this.userService = new UserService();
         this.authService = new AuthService(userService);
-        this.taskManager = TaskManager.getInstance();
         seedUsers();
     }
 
@@ -81,10 +77,10 @@ public class MainMenu {
     private void mainLoop() {
         while (true) {
             System.out.println("\n========== MENU PRINCIPAL ==========");
-            System.out.println("1. Crear Task              (Factory)");
-            System.out.println("2. Crear Reminder          (Factory + Strategy)");
-            System.out.println("3. Compartir item          (synchronized + Observer)");
-            System.out.println("4. Cambiar estado de Task  (Threads + Observer)");
+            System.out.println("1. Crear Task");
+            System.out.println("2. Crear Reminder          (Strategy)");
+            System.out.println("3. Compartir item          (synchronized)");
+            System.out.println("4. Cambiar estado de Task  (synchronized)");
             System.out.println("5. Disparar alerta Reminder");
             System.out.println("6. Ver mis items creados");
             System.out.println("7. Ver items compartidos conmigo");
@@ -105,7 +101,7 @@ public class MainMenu {
                 case "7" -> currentUser.printSharedItems();
                 case "8" -> listAllItems();
                 case "9" -> { if (login()) continue; else return; }
-                case "D", "d" -> new DemoRunner(userService, taskManager, idCounter).runDemo();
+                case "D", "d" -> new DemoRunner(userService, items, idCounter).runDemo();
                 case "0" -> { System.out.println("Hasta luego!"); return; }
                 default -> System.out.println("Opcion invalida.");
             }
@@ -119,11 +115,10 @@ public class MainMenu {
         String desc = scanner.nextLine();
         Priority priority = readPriority();
 
-        ItemFactory factory = new TaskFactory();
-        Item task = factory.createItem(idCounter.getAndIncrement(), title, desc, priority, currentUser);
+        Task task = new Task(idCounter.getAndIncrement(), title, desc, priority, currentUser);
 
         if (currentUser.addItem(task)) {
-            taskManager.addTask(task);
+            items.put(task.getId(), task);
             System.out.println("Task creada con ID " + task.getId());
         }
     }
@@ -137,27 +132,25 @@ public class MainMenu {
         System.out.print("Fecha/Hora (ej 2026-05-15 10:00): ");
         String dateTime = scanner.nextLine();
 
-        ItemFactory factory = new ReminderFactory(dateTime);
-        Item reminder = factory.createItem(idCounter.getAndIncrement(), title, desc, priority, currentUser);
+        Reminder reminder = new Reminder(idCounter.getAndIncrement(), title, desc, priority, currentUser, dateTime);
 
-        System.out.println("Estrategia de notificacion: 1=Email 2=Push 3=SMS");
+        System.out.println("Estrategia de notificacion: 1=Email 2=Mensaje de texto");
         System.out.print("Opcion: ");
         NotificationStrategy strategy = switch (scanner.nextLine().trim()) {
-            case "2" -> new PushNotification();
-            case "3" -> new SMSNotification();
+            case "2" -> new MensajeTextoNotification();
             default -> new EmailNotification();
         };
-        ((Reminder) reminder).setNotificationStrategy(strategy);
+        reminder.setNotificationStrategy(strategy);
 
         if (currentUser.addItem(reminder)) {
-            taskManager.addTask(reminder);
+            items.put(reminder.getId(), reminder);
             System.out.println("Reminder creado con ID " + reminder.getId());
         }
     }
 
     private void shareItem() {
         System.out.print("ID del item: ");
-        Item item = taskManager.getTask(readInt());
+        Item item = items.get(readInt());
         if (item == null) { System.out.println("Item no encontrado."); return; }
         if (!item.getOwner().equals(currentUser)) {
             System.out.println("Solo el owner puede compartir.");
@@ -172,7 +165,7 @@ public class MainMenu {
 
     private void changeTaskStatus() {
         System.out.print("ID de la Task: ");
-        Item item = taskManager.getTask(readInt());
+        Item item = items.get(readInt());
         if (!(item instanceof Task task)) { System.out.println("No es una Task valida."); return; }
         System.out.println("Estado actual: " + task.getStatus());
         System.out.println("Nuevo: 1=PENDING 2=IN_PROGRESS 3=COMPLETED 4=CANCELED");
@@ -188,13 +181,13 @@ public class MainMenu {
 
     private void triggerReminder() {
         System.out.print("ID del Reminder: ");
-        Item item = taskManager.getTask(readInt());
+        Item item = items.get(readInt());
         if (!(item instanceof Reminder r)) { System.out.println("No es un Reminder."); return; }
         r.notifyAlert();
     }
 
     private void listAllItems() {
-        List<Item> all = taskManager.getAllTasks();
+        List<Item> all = new ArrayList<>(items.values());
         if (all.isEmpty()) { System.out.println("No hay items."); return; }
         for (Item i : all) {
             i.showDetails();

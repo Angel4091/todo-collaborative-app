@@ -2,10 +2,6 @@ package org.example.model;
 
 import org.example.catalog.Priority;
 import org.example.catalog.Status;
-import org.example.thread.TaskWorker;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Task extends Item {
     private Status status;
@@ -34,21 +30,7 @@ public class Task extends Item {
     public synchronized void modifyStatus(Status newStatus) {
         Status oldStatus = this.status;
         this.status = newStatus;
-        System.out.println("[Task '" + title + "'] " + oldStatus + " -> " + newStatus);
-
-        List<TaskObserver> snapshot;
-        synchronized (observers) {
-            snapshot = new ArrayList<>(observers);
-        }
-
-        for (TaskObserver obs : snapshot) {
-            if (obs instanceof User u) {
-                Thread t = new Thread(new TaskWorker(this, "estado=" + newStatus, u));
-                t.setName("Notifier-" + u.getName());
-                t.start();
-            } else {
-                obs.update(this);
-            }
-        }
+        System.out.println("[" + Thread.currentThread().getName() + "] Task '"
+                + title + "': " + oldStatus + " -> " + newStatus);
     }
 }

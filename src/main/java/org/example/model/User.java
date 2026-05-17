@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class User implements Authenticable, TaskObserver {
+public class User implements Authenticable {
     protected int id;
     protected String name;
     protected String email;
@@ -60,11 +60,6 @@ public class User implements Authenticable, TaskObserver {
                 }
             }
         }
-    }
-
-    @Override
-    public void update(Item item) {
-        System.out.println("  >> [" + name + "] notificado: '" + item.getTitle() + "' actualizado.");
     }
 
     public int getId() { return id; }

@@ -18,32 +18,51 @@ endif
 |Sistema|
 switch (Operacion?)
 case (Crear Task)
-  :Invocar TaskFactory.createItem();
+  :Invocar TaskFactory.createItem(id, titulo, ...);
+  note right
+    Patron Factory Method:
+    cliente NO usa new Task() directamente
+  end note
   :Instanciar Task con status=PENDING;
   :TaskManager.getInstance();
-  :TaskManager.addTask(task) [synchronized];
+  note right
+    Patron Singleton:
+    una sola instancia thread-safe
+    (double-checked locking)
+  end note
+  :TaskManager.addTask(task) [ReentrantLock];
 
 case (Compartir Task)
   :task.addCollaborator(user) [synchronized];
-  :task.addObserver(user);
-  :Agregar task a sharedItems del colaborador;
+  note right
+    El metodo addCollaborator() internamente:
+    1) agrega user a la lista de collaborators
+    2) llama addObserver(user)
+    3) agrega task a sharedItems del user
+  end note
 
 case (Cambiar estado)
   :task.modifyStatus(nuevoEstado) [synchronized];
-  :task.notifyObservers();
+  note right
+    synchronized garantiza que solo
+    un hilo a la vez cambie el status.
+    Luego se toma un snapshot inmutable
+    de observers para evitar
+    ConcurrentModificationException.
+  end note
 
   fork
-    :TaskWorker hilo 1;
+    :new Thread(TaskWorker, colab1).start();
     :Observer1.update(task);
   fork again
-    :TaskWorker hilo 2;
+    :new Thread(TaskWorker, colab2).start();
     :Observer2.update(task);
   fork again
-    :TaskWorker hilo N;
+    :new Thread(TaskWorker, colabN).start();
     :ObserverN.update(task);
   end fork
 
-  :Todos los colaboradores notificados;
+  :Todos los colaboradores notificados en paralelo;
 
 endswitch
 

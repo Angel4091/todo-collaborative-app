@@ -1,18 +1,18 @@
 @startuml DiagramaSecuenciaV2
-title Diagrama de Secuencia v2 - Entregable 2\nFlujo completo: login -> crear task -> compartir -> cambiar estado en paralelo\n(basado en el diagrama de actividad, incluye concurrencia)
+title Diagrama de Secuencia v2 - Entregable 2\nSigue paso a paso el flujo del diagrama de actividad\n(ciclo de vida de una Task con concurrencia)
 
-actor "Usuario\n(Angel)" as U
+actor "Usuario Owner\n(Angel)" as U
 participant ":MainMenu" as menu
 participant ":AuthService" as auth
-participant "angel:PremiumUser" as owner
+participant "owner:PremiumUser" as owner
 participant "task:Task\n(compartida)" as task
 participant "items:\nConcurrentHashMap" as map
 participant "maria:ClassicUser" as maria
 participant "pedro:ClassicUser" as pedro
-participant ":TaskWorker\n(hilo Maria)" as w1
-participant ":TaskWorker\n(hilo Pedro)" as w2
+participant ":TaskWorker\n(Maria)" as w1
+participant ":TaskWorker\n(Pedro)" as w2
 
-== 1. Autenticacion ==
+== 1. Iniciar sesion (Actividad: Iniciar sesion + validar credenciales) ==
 
 U -> menu : start()
 activate menu
@@ -25,16 +25,14 @@ deactivate owner
 auth --> menu : owner (PremiumUser)
 deactivate auth
 
-== 2. Crear Task (sin Factory: new directo) ==
+== 2. Crear Task (Actividad: generar id + new Task + addItem + registrar en items) ==
 
-U -> menu : opcion "1. Crear Task"
-menu -> task : new Task(id, titulo, desc, HIGH, owner)
+U -> menu : crear task (titulo, descripcion, prioridad)
+menu -> task : new Task(id, titulo, desc, prioridad, owner)
 activate task
 note right of task
-  Sin Factory: cliente
-  instancia Task con new.
-  status inicial = PENDING.
-  collaborators = CopyOnWriteArrayList.
+  status inicial = PENDING
+  collaborators = CopyOnWriteArrayList
 end note
 task --> menu : task
 deactivate task
@@ -50,19 +48,18 @@ activate map
 map --> menu : void
 deactivate map
 
-== 3. Compartir task con 2 colaboradores (synchronized) ==
+== 3. Compartir task con colaboradores (Actividad: addCollaborator [synchronized]) ==
 
-U -> menu : opcion "3. Compartir item"
+U -> menu : compartir task con Maria
 
 menu -> owner : shareItem(task, maria)
 activate owner
 owner -> task : addCollaborator(maria)
 activate task
 note right of task
-  synchronized: si dos hilos
-  intentaran compartir al mismo
-  tiempo, solo uno entra al
-  monitor a la vez.
+  synchronized: solo un hilo
+  puede modificar collaborators
+  a la vez.
 end note
 task -> task : synchronized(this)
 task -> task : collaborators.add(maria)
@@ -74,6 +71,8 @@ task --> owner : void
 deactivate task
 owner --> menu : true
 deactivate owner
+
+U -> menu : compartir task con Pedro
 
 menu -> owner : shareItem(task, pedro)
 activate owner
@@ -90,9 +89,9 @@ deactivate task
 owner --> menu : true
 deactivate owner
 
-== 4. Cambiar estado en PARALELO (Threads + synchronized) ==
+== 4. Cambiar estado en paralelo (Actividad: fork de hilos + modifyStatus) ==
 
-U -> menu : opcion "D. Demo concurrencia"
+U -> menu : ejecutar demo de concurrencia
 
 menu -> w1 : new TaskWorker(task, IN_PROGRESS, maria)
 activate w1
@@ -134,8 +133,9 @@ else
   deactivate w2
 end
 
-menu -> menu : h1.join(); h2.join();
+== 5. Estado final (Actividad: join + mostrar estado final) ==
 
+menu -> menu : h1.join(); h2.join();
 menu -> task : showDetails()
 activate task
 task --> menu : estado final

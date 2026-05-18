@@ -1,33 +1,48 @@
 @startuml DiagramaSecuenciaV2
-title Diagrama de Secuencia v2 - Entregable 2\nSigue paso a paso el flujo del diagrama de actividad\n(ciclo de vida de una Task con concurrencia)
+title Diagrama de Secuencia v2 - Entregable 2\nMapeado 1 a 1 con el diagrama de actividad\n(ciclo de vida de una Task con concurrencia)
 
-actor "Usuario Owner\n(Angel)" as U
+actor "Usuario Owner" as U
+actor "Colaboradores\n(Maria, Pedro)" as C
 participant ":MainMenu" as menu
 participant ":AuthService" as auth
 participant "owner:PremiumUser" as owner
-participant "task:Task\n(compartida)" as task
+participant ":AtomicInteger" as ids
+participant "task:Task" as task
 participant "items:\nConcurrentHashMap" as map
 participant "maria:ClassicUser" as maria
 participant "pedro:ClassicUser" as pedro
 participant ":TaskWorker\n(Maria)" as w1
 participant ":TaskWorker\n(Pedro)" as w2
 
-== 1. Iniciar sesion (Actividad: Iniciar sesion + validar credenciales) ==
+== Actividad: Iniciar sesion (email, password) ==
 
-U -> menu : start()
+U -> menu : login(email, password)
 activate menu
 menu -> auth : login(email, password)
 activate auth
+
+== Actividad: Validar credenciales ==
+
 auth -> owner : authenticate(email, password)
 activate owner
 owner --> auth : true
 deactivate owner
-auth --> menu : owner (PremiumUser)
+auth --> menu : owner
 deactivate auth
 
-== 2. Crear Task (Actividad: generar id + new Task + addItem + registrar en items) ==
+== Actividad: Crear Task (titulo, descripcion, prioridad) ==
 
-U -> menu : crear task (titulo, descripcion, prioridad)
+U -> menu : crear Task(titulo, descripcion, prioridad)
+
+== Actividad: Generar id con AtomicInteger ==
+
+menu -> ids : getAndIncrement()
+activate ids
+ids --> menu : id
+deactivate ids
+
+== Actividad: task = new Task(id, titulo, desc, prioridad, owner) ==
+
 menu -> task : new Task(id, titulo, desc, prioridad, owner)
 activate task
 note right of task
@@ -37,42 +52,43 @@ end note
 task --> menu : task
 deactivate task
 
+== Actividad: owner.addItem(task) ==
+
 menu -> owner : addItem(task)
 activate owner
 owner -> owner : createdItems.add(task)
 owner --> menu : true
 deactivate owner
 
+== Actividad: Registrar task en items (ConcurrentHashMap) ==
+
 menu -> map : put(task.id, task)
 activate map
 map --> menu : void
 deactivate map
 
-== 3. Compartir task con colaboradores (Actividad: addCollaborator [synchronized]) ==
+== Actividad: Compartir task con colaboradores (Maria y Pedro) ==
 
-U -> menu : compartir task con Maria
+U -> menu : compartir task con Maria y Pedro
+
+== Actividad: task.addCollaborator(maria) [synchronized] ==
 
 menu -> owner : shareItem(task, maria)
 activate owner
 owner -> task : addCollaborator(maria)
 activate task
-note right of task
-  synchronized: solo un hilo
-  puede modificar collaborators
-  a la vez.
-end note
 task -> task : synchronized(this)
 task -> task : collaborators.add(maria)
 task -> maria : getSharedItems().add(task)
 activate maria
 maria --> task
 deactivate maria
-task --> owner : void
+task --> owner
 deactivate task
 owner --> menu : true
 deactivate owner
 
-U -> menu : compartir task con Pedro
+== Actividad: task.addCollaborator(pedro) [synchronized] ==
 
 menu -> owner : shareItem(task, pedro)
 activate owner
@@ -84,14 +100,16 @@ task -> pedro : getSharedItems().add(task)
 activate pedro
 pedro --> task
 deactivate pedro
-task --> owner : void
+task --> owner
 deactivate task
 owner --> menu : true
 deactivate owner
 
-== 4. Cambiar estado en paralelo (Actividad: fork de hilos + modifyStatus) ==
+== Actividad: Cada colaborador intenta cambiar el estado desde su propio hilo ==
 
-U -> menu : ejecutar demo de concurrencia
+C -> menu : disparar demo de concurrencia
+
+== Actividad: new TaskWorker(task, IN_PROGRESS, maria) y new TaskWorker(task, COMPLETED, pedro) ==
 
 menu -> w1 : new TaskWorker(task, IN_PROGRESS, maria)
 activate w1
@@ -101,14 +119,16 @@ activate w2
 menu -> w1 : new Thread(w1, "Hilo-Maria").start()
 menu -> w2 : new Thread(w2, "Hilo-Pedro").start()
 
-' === EJECUCION CONCURRENTE ===
-par hilos en paralelo sobre la MISMA task
+== Actividad: fork - 2 hilos llaman modifyStatus en paralelo ==
+
+par Hilo-Maria  ||  Hilo-Pedro
   w1 -> w1 : run()
   w1 -> task : modifyStatus(IN_PROGRESS)
   activate task
   note right of task
-    PRIMER hilo en obtener el
-    monitor. El otro espera.
+    Synchronized: primer hilo
+    obtiene el monitor. El otro
+    espera.
   end note
   task -> task : synchronized(this)
   task -> task : status = IN_PROGRESS
@@ -121,9 +141,10 @@ else
   w2 -> task : modifyStatus(COMPLETED)
   activate task
   note right of task
-    SEGUNDO hilo: entra cuando
-    se libera el monitor.
-    No hay estado corrupto.
+    Synchronized: segundo hilo
+    entra cuando se libera el
+    monitor. No hay estado
+    corrupto.
   end note
   task -> task : synchronized(this)
   task -> task : status = COMPLETED
@@ -133,15 +154,28 @@ else
   deactivate w2
 end
 
-== 5. Estado final (Actividad: join + mostrar estado final) ==
+== Actividad: Los hilos se serializan en el monitor de la task ==
 
-menu -> menu : h1.join(); h2.join();
+note over task
+  CONCURRENCIA:
+  El monitor de 'task' serializa los
+  llamados a modifyStatus. El ultimo
+  hilo en entrar deja el estado final.
+end note
+
+== Actividad: join() de ambos hilos ==
+
+menu -> menu : h1.join()
+menu -> menu : h2.join()
+
+== Actividad: Mostrar estado final de la task ==
+
 menu -> task : showDetails()
 activate task
 task --> menu : estado final
 deactivate task
 
-menu --> U : muestra estado final de la task
+menu --> U : muestra estado final
 deactivate menu
 
 @enduml

@@ -122,3 +122,27 @@ Usuarios de prueba precargados:
 | pedro@mail.com | pass | ClassicUser (limit 5 tasks, 3 colab) |
 
 Una vez dentro, opción **D** para correr el demo automático de concurrencia.
+
+### Output esperado del demo
+
+```
+========== DEMO CONCURRENCIA ==========
+[Item Sprint Review] Maria agregado como colaborador.
+[Item Sprint Review] Pedro agregado como colaborador.
+
+>>> Maria y Pedro intentan cambiar el estado concurrentemente:
+    (synchronized en modifyStatus garantiza que solo
+     un hilo a la vez modifique la task compartida)
+[Hilo-Maria] Maria intenta cambiar 'Sprint Review' a IN_PROGRESS
+[Hilo-Pedro] Pedro intenta cambiar 'Sprint Review' a COMPLETED
+[Hilo-Maria] Task 'Sprint Review': PENDING -> IN_PROGRESS
+[Hilo-Pedro] Task 'Sprint Review': IN_PROGRESS -> COMPLETED
+
+>>> Estado final de la Task:
+=== TASK ===
+Estado     : COMPLETED
+...
+========== FIN DEMO ==========
+```
+
+El orden de los hilos puede variar entre ejecuciones (eso es lo esperado en concurrencia). Lo importante es que **siempre** hay una transición ordenada entre estados y nunca queda en un estado inconsistente — eso lo garantiza `synchronized` en `modifyStatus`.

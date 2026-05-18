@@ -1,5 +1,5 @@
 @startuml SecuenciaCambiarEstado
-title Secuencia 3 - Cambiar estado de Task con concurrencia\n(Threads paralelos + synchronized)
+title Diagrama de Secuencia - Cambiar estado de Task con concurrencia\n(Threads paralelos + synchronized)
 
 actor "Usuario\n(disparador)" as U
 participant ":DemoRunner" as demo

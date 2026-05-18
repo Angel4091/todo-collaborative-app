@@ -98,10 +98,8 @@ En `diagramasUML/` están los archivos `.puml` (PlantUML):
 | Archivo | Contenido |
 |---------|-----------|
 | `1_diagrama_clases_v2.puml` | Diagrama de clases del entregable 2 (Strategy + concurrencia). |
-| `2_diagrama_actividad_v2.puml` | Flujo de gestión de tareas con concurrencia. |
-| `3_secuencia_crear_task.puml` | Secuencia: crear una Task (instanciación directa + registro en items). |
-| `4_secuencia_compartir_task.puml` | Secuencia: compartir un item (`addCollaborator` con `synchronized`). |
-| `5_secuencia_cambiar_estado.puml` | Secuencia: cambiar el estado de una task con dos hilos paralelos. |
+| `2_diagrama_actividad_v2.puml` | Actividad: cambiar estado de una Task (`modifyStatus`) con dos hilos paralelos. |
+| `3_secuencia_cambiar_estado.puml` | Secuencia: cambiar el estado de una task con dos hilos paralelos. |
 
 Para visualizarlos: extensión **PlantUML** en VS Code, o pegar el contenido en https://plantuml.com/plantuml.
 

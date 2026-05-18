@@ -1,69 +1,78 @@
 @startuml DiagramaActividadV2
-title Diagrama de Actividad v2 - Flujo de gestion de tareas\n(Entregable 2 - ciclo de vida de una Task con concurrencia)
+title Diagrama de Actividad v2 - Cambiar estado de una Task (modifyStatus)\n(Entregable 2 - acceso concurrente a una tarea compartida)
 
-|Usuario Owner|
+|Sistema|
 start
-:Iniciar sesion (email, password);
-
-|Sistema|
-if (Credenciales validas?) then (no)
-  :Mostrar error;
-  stop
-else (si)
-endif
-
-|Usuario Owner|
-:Crear Task (titulo, descripcion, prioridad);
-
-|Sistema|
-:Generar id con AtomicInteger;
-:task = new Task(id, titulo, desc, prioridad, owner);
+:Existe una Task compartida
+ entre Maria y Pedro;
 note right
-  status inicial = PENDING
-  collaborators = CopyOnWriteArrayList
-end note
-:owner.addItem(task);
-:Registrar task en items (ConcurrentHashMap);
-
-|Usuario Owner|
-:Compartir task con colaboradores
- (Maria y Pedro);
-
-|Sistema|
-:task.addCollaborator(maria) [synchronized];
-:task.addCollaborator(pedro) [synchronized];
-note right
-  addCollaborator esta synchronized:
-  evita que dos hilos modifiquen la
-  lista de colaboradores en simultaneo.
+  Pre-condicion: la task ya
+  fue creada por el owner y
+  compartida con dos colaboradores
+  (Maria y Pedro).
 end note
 
 |Colaboradores|
-:Cada colaborador intenta cambiar
- el estado de la task COMPARTIDA
- desde su propio hilo;
+:Cada colaborador elige un
+ nuevo estado para la task;
 
 |Sistema|
-fork
-  :Hilo "Hilo-Maria";
-  :new TaskWorker(task, IN_PROGRESS, maria);
-  :task.modifyStatus(IN_PROGRESS) [synchronized];
-fork again
-  :Hilo "Hilo-Pedro";
-  :new TaskWorker(task, COMPLETED, pedro);
-  :task.modifyStatus(COMPLETED) [synchronized];
-end fork
-
-:Los hilos se serializan en el monitor de la task;
+:Crear un TaskWorker por colaborador
+ envuelto en su propio Thread;
 note right
-  CONCURRENCIA:
-  synchronized garantiza que solo
-  un hilo este modificando el status
-  en un momento dado. El ultimo en
-  entrar deja el estado final.
+  new Thread(new TaskWorker(task,
+  nuevoEstado, colaborador)).start()
 end note
 
-:join() de ambos hilos;
+fork
+  |Hilo-Maria|
+  :TaskWorker.run();
+  :task.modifyStatus(IN_PROGRESS);
+  note right
+    Entra al metodo synchronized
+    de la task. Si Pedro llego
+    primero, Maria espera.
+  end note
+  if (Monitor disponible?) then (si)
+    :synchronized(this);
+    :status = IN_PROGRESS;
+    :log "PENDING -> IN_PROGRESS";
+  else (no, ocupado por Pedro)
+    :Esperar al monitor;
+    :Entrar a la seccion critica;
+    :status = IN_PROGRESS;
+  endif
+fork again
+  |Hilo-Pedro|
+  :TaskWorker.run();
+  :task.modifyStatus(COMPLETED);
+  note right
+    Mismo metodo synchronized.
+    Si Maria entro primero,
+    Pedro queda esperando.
+  end note
+  if (Monitor disponible?) then (si)
+    :synchronized(this);
+    :status = COMPLETED;
+    :log "IN_PROGRESS -> COMPLETED";
+  else (no, ocupado por Maria)
+    :Esperar al monitor;
+    :Entrar a la seccion critica;
+    :status = COMPLETED;
+  endif
+end fork
+
+|Sistema|
+:Ambos hilos terminan (join);
+note right
+  CONCURRENCIA:
+  synchronized en modifyStatus
+  serializa los dos hilos sobre
+  el monitor de la task. No hay
+  estado corrupto: el ultimo hilo
+  en entrar deja el estado final.
+end note
+
 :Mostrar estado final de la task;
 stop
 

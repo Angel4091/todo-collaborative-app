@@ -1,0 +1,61 @@
+@startuml SecuenciaCompartirTask
+title Secuencia 2 - Compartir Task\n(synchronized para evitar race conditions)
+
+actor "Usuario Owner" as U
+participant ":MainMenu" as menu
+participant ":User\n(owner)" as owner
+participant ":Task" as task
+participant "collaborators:\nCopyOnWriteArrayList" as list
+participant ":User\n(colaborador)" as colab
+
+U -> menu : opcion "3. Compartir item"
+activate menu
+menu -> menu : leer id del item y email del colab
+
+menu -> owner : shareItem(task, colab)
+activate owner
+
+alt owner es ClassicUser y supera maxCollaborators
+  owner --> menu : false
+  menu --> U : "Limite de colaboradores alcanzado"
+else
+  owner -> task : addCollaborator(colab)
+  activate task
+  note right of task
+    addCollaborator esta marcado como
+    synchronized. Si dos hilos intentan
+    compartir la misma task al mismo
+    tiempo, solo uno entra y el otro
+    espera.
+  end note
+
+  task -> task : synchronized (this)
+
+  task -> list : contains(colab)?
+  activate list
+  list --> task : false
+  deactivate list
+
+  task -> list : add(colab)
+  activate list
+  list --> task
+  deactivate list
+
+  task -> colab : getSharedItems().add(this)
+  activate colab
+  colab --> task
+  deactivate colab
+
+  task -> task : System.out.println(\n  "[Item ...] colab agregado")
+
+  task --> owner : void
+  deactivate task
+
+  owner --> menu : true
+end
+deactivate owner
+
+menu --> U : confirmacion
+deactivate menu
+
+@enduml

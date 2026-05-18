@@ -1,0 +1,89 @@
+@startuml SecuenciaCambiarEstado
+title Secuencia 3 - Cambiar estado de Task con concurrencia\n(Threads paralelos + synchronized)
+
+actor "Usuario\n(disparador)" as U
+participant ":DemoRunner" as demo
+participant "task:Task\n(compartida)" as task
+participant ":TaskWorker\n(hilo Maria)" as w1
+participant ":TaskWorker\n(hilo Pedro)" as w2
+participant ":Thread\n(Hilo-Maria)" as t1
+participant ":Thread\n(Hilo-Pedro)" as t2
+
+U -> demo : runDemo()
+activate demo
+
+demo -> task : new Task(...) y compartir con Maria y Pedro
+note right
+  La task t1 esta compartida.
+  Maria y Pedro intentaran
+  cambiar su estado al mismo
+  tiempo desde hilos distintos.
+end note
+
+demo -> w1 : new TaskWorker(t1, IN_PROGRESS, maria)
+activate w1
+demo -> w2 : new TaskWorker(t1, COMPLETED, pedro)
+activate w2
+
+demo -> t1 : new Thread(w1, "Hilo-Maria")
+activate t1
+demo -> t2 : new Thread(w2, "Hilo-Pedro")
+activate t2
+
+' === ARRANQUE DE LOS HILOS ===
+demo -> t1 : start()
+demo -> t2 : start()
+
+' === EJECUCION CONCURRENTE ===
+par ejecucion paralela
+  t1 -> w1 : run()
+  w1 -> w1 : sleep(100)
+  w1 -> task : modifyStatus(IN_PROGRESS)
+  activate task
+  note right of task
+    PRIMER hilo en obtener el
+    monitor de 'task'. El otro
+    queda bloqueado esperando.
+  end note
+  task -> task : synchronized(this)
+  task -> task : status = IN_PROGRESS
+  task -> task : log "PENDING -> IN_PROGRESS"
+  task --> w1
+  deactivate task
+  w1 --> t1
+  deactivate w1
+else
+  t2 -> w2 : run()
+  w2 -> w2 : sleep(100)
+  w2 -> task : modifyStatus(COMPLETED)
+  activate task
+  note right of task
+    SEGUNDO hilo: entra cuando
+    el primero libera el monitor.
+    synchronized garantiza que
+    no haya estado intermedio
+    corrupto.
+  end note
+  task -> task : synchronized(this)
+  task -> task : status = COMPLETED
+  task -> task : log "IN_PROGRESS -> COMPLETED"
+  task --> w2
+  deactivate task
+  w2 --> t2
+  deactivate w2
+end
+
+demo -> t1 : join()
+deactivate t1
+demo -> t2 : join()
+deactivate t2
+
+demo -> task : showDetails()
+activate task
+task --> demo : estado final = COMPLETED
+deactivate task
+
+demo --> U : "Fin del demo"
+deactivate demo
+
+@enduml

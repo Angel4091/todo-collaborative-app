@@ -1,5 +1,5 @@
 @startuml SecuenciaCrearTask
-title Secuencia - Crear Task\n(instanciacion directa + registro en items)
+title Secuencia 1 - Crear Task\n(instanciacion directa + registro en items)
 
 actor Usuario as U
 participant ":MainMenu" as menu

@@ -1,181 +1,63 @@
-@startuml DiagramaSecuenciaV2
-title Diagrama de Secuencia v2 - Entregable 2\nMapeado 1 a 1 con el diagrama de actividad\n(ciclo de vida de una Task con concurrencia)
+@startuml SecuenciaCrearTask
+title Secuencia - Crear Task\n(instanciacion directa + registro en items)
 
-actor "Usuario Owner" as U
-actor "Colaboradores\n(Maria, Pedro)" as C
+actor Usuario as U
 participant ":MainMenu" as menu
-participant ":AuthService" as auth
-participant "owner:PremiumUser" as owner
-participant ":AtomicInteger" as ids
-participant "task:Task" as task
+participant ":AtomicInteger\n(idCounter)" as ids
+participant ":Task" as task
+participant ":User\n(owner)" as user
 participant "items:\nConcurrentHashMap" as map
-participant "maria:ClassicUser" as maria
-participant "pedro:ClassicUser" as pedro
-participant ":TaskWorker\n(Maria)" as w1
-participant ":TaskWorker\n(Pedro)" as w2
 
-== Actividad: Iniciar sesion (email, password) ==
-
-U -> menu : login(email, password)
+U -> menu : opcion "1. Crear Task"
 activate menu
-menu -> auth : login(email, password)
-activate auth
 
-== Actividad: Validar credenciales ==
-
-auth -> owner : authenticate(email, password)
-activate owner
-owner --> auth : true
-deactivate owner
-auth --> menu : owner
-deactivate auth
-
-== Actividad: Crear Task (titulo, descripcion, prioridad) ==
-
-U -> menu : crear Task(titulo, descripcion, prioridad)
-
-== Actividad: Generar id con AtomicInteger ==
+menu -> menu : leer titulo, descripcion, prioridad
 
 menu -> ids : getAndIncrement()
 activate ids
-ids --> menu : id
+note right of ids
+  AtomicInteger garantiza ids
+  unicos incluso si dos hilos
+  crean tasks al mismo tiempo.
+end note
+ids --> menu : nextId
 deactivate ids
 
-== Actividad: task = new Task(id, titulo, desc, prioridad, owner) ==
-
-menu -> task : new Task(id, titulo, desc, prioridad, owner)
+menu -> task : new Task(nextId, titulo, desc, prioridad, owner)
 activate task
 note right of task
-  status inicial = PENDING
-  collaborators = CopyOnWriteArrayList
+  Sin Factory: el cliente
+  instancia Task con new
+  directamente.
 end note
+task -> task : super(...) en Item
+task -> task : collaborators = new CopyOnWriteArrayList()
+task -> task : status = PENDING
 task --> menu : task
 deactivate task
 
-== Actividad: owner.addItem(task) ==
-
-menu -> owner : addItem(task)
-activate owner
-owner -> owner : createdItems.add(task)
-owner --> menu : true
-deactivate owner
-
-== Actividad: Registrar task en items (ConcurrentHashMap) ==
+menu -> user : addItem(task)
+activate user
+alt owner es PremiumUser
+  user -> user : createdItems.add(task)
+  user --> menu : true
+else owner es ClassicUser y supera limitTask
+  user --> menu : false
+  menu --> U : "Limite de items alcanzado"
+end
+deactivate user
 
 menu -> map : put(task.id, task)
 activate map
+note right of map
+  ConcurrentHashMap permite
+  inserciones concurrentes
+  sin lockear toda la tabla.
+end note
 map --> menu : void
 deactivate map
 
-== Actividad: Compartir task con colaboradores (Maria y Pedro) ==
-
-U -> menu : compartir task con Maria y Pedro
-
-== Actividad: task.addCollaborator(maria) [synchronized] ==
-
-menu -> owner : shareItem(task, maria)
-activate owner
-owner -> task : addCollaborator(maria)
-activate task
-task -> task : synchronized(this)
-task -> task : collaborators.add(maria)
-task -> maria : getSharedItems().add(task)
-activate maria
-maria --> task
-deactivate maria
-task --> owner
-deactivate task
-owner --> menu : true
-deactivate owner
-
-== Actividad: task.addCollaborator(pedro) [synchronized] ==
-
-menu -> owner : shareItem(task, pedro)
-activate owner
-owner -> task : addCollaborator(pedro)
-activate task
-task -> task : synchronized(this)
-task -> task : collaborators.add(pedro)
-task -> pedro : getSharedItems().add(task)
-activate pedro
-pedro --> task
-deactivate pedro
-task --> owner
-deactivate task
-owner --> menu : true
-deactivate owner
-
-== Actividad: Cada colaborador intenta cambiar el estado desde su propio hilo ==
-
-C -> menu : disparar demo de concurrencia
-
-== Actividad: new TaskWorker(task, IN_PROGRESS, maria) y new TaskWorker(task, COMPLETED, pedro) ==
-
-menu -> w1 : new TaskWorker(task, IN_PROGRESS, maria)
-activate w1
-menu -> w2 : new TaskWorker(task, COMPLETED, pedro)
-activate w2
-
-menu -> w1 : new Thread(w1, "Hilo-Maria").start()
-menu -> w2 : new Thread(w2, "Hilo-Pedro").start()
-
-== Actividad: fork - 2 hilos llaman modifyStatus en paralelo ==
-
-par Hilo-Maria  ||  Hilo-Pedro
-  w1 -> w1 : run()
-  w1 -> task : modifyStatus(IN_PROGRESS)
-  activate task
-  note right of task
-    Synchronized: primer hilo
-    obtiene el monitor. El otro
-    espera.
-  end note
-  task -> task : synchronized(this)
-  task -> task : status = IN_PROGRESS
-  task --> w1
-  deactivate task
-  w1 --> menu
-  deactivate w1
-else
-  w2 -> w2 : run()
-  w2 -> task : modifyStatus(COMPLETED)
-  activate task
-  note right of task
-    Synchronized: segundo hilo
-    entra cuando se libera el
-    monitor. No hay estado
-    corrupto.
-  end note
-  task -> task : synchronized(this)
-  task -> task : status = COMPLETED
-  task --> w2
-  deactivate task
-  w2 --> menu
-  deactivate w2
-end
-
-== Actividad: Los hilos se serializan en el monitor de la task ==
-
-note over task
-  CONCURRENCIA:
-  El monitor de 'task' serializa los
-  llamados a modifyStatus. El ultimo
-  hilo en entrar deja el estado final.
-end note
-
-== Actividad: join() de ambos hilos ==
-
-menu -> menu : h1.join()
-menu -> menu : h2.join()
-
-== Actividad: Mostrar estado final de la task ==
-
-menu -> task : showDetails()
-activate task
-task --> menu : estado final
-deactivate task
-
-menu --> U : muestra estado final
+menu --> U : "Task creada con ID " + task.getId()
 deactivate menu
 
 @enduml

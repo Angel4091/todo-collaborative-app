@@ -1,21 +1,54 @@
 @startuml SecuenciaCambiarEstado
-title Diagrama de Secuencia\nCambiar estado de Task con concurrencia
+title Diagrama de Secuencia - Cambiar estado de Task con concurrencia\n(solo entre TaskWorker y Task)
 
 participant ":TaskWorker" as worker
 participant "task:Task" as task
 
 par Hilo-Maria
+  worker -> worker : run()
+  activate worker
+  worker -> worker : sleep(100)
   worker -> task : modifyStatus(IN_PROGRESS)
+  activate task
+  note right of task
+    PRIMER hilo en obtener
+    el monitor de 'task'.
+    El otro queda esperando.
+  end note
+  task -> task : synchronized(this)
+  task -> task : oldStatus = PENDING
+  task -> task : this.status = IN_PROGRESS
+  task -> task : log "PENDING -> IN_PROGRESS"
   task --> worker
+  deactivate task
+  deactivate worker
 else Hilo-Pedro
+  worker -> worker : run()
+  activate worker
+  worker -> worker : sleep(100)
   worker -> task : modifyStatus(COMPLETED)
+  activate task
+  note right of task
+    SEGUNDO hilo: entra al
+    liberarse el monitor.
+    No hay estado corrupto.
+  end note
+  task -> task : synchronized(this)
+  task -> task : oldStatus = IN_PROGRESS
+  task -> task : this.status = COMPLETED
+  task -> task : log "IN_PROGRESS -> COMPLETED"
   task --> worker
+  deactivate task
+  deactivate worker
 end
 
-note over task
-  modifyStatus() es synchronized:
-  solo un hilo entra al monitor,
-  el otro espera. Sin race condition.
+note over worker, task
+  CONCURRENCIA:
+  modifyStatus() es synchronized. Aunque dos hilos
+  llamen al metodo en paralelo sobre la misma
+  instancia 'task', el monitor los serializa:
+  solo uno entra a la seccion critica a la vez.
+  El ultimo hilo en entrar deja el estado final.
 end note
 
 @enduml

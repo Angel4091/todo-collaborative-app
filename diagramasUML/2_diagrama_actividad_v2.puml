@@ -1,9 +1,9 @@
 @startuml DiagramaActividadV2
 title Diagrama de Actividad - Cambiar estado de Task con concurrencia
 
+|Hilo Maria|
 start
 fork
-  |Hilo Maria|
   :Crear TaskWorker(task, IN_PROGRESS, maria);
   :Iniciar hilo (Thread.start());
   :Ejecutar run();

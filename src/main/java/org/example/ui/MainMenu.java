@@ -61,17 +61,38 @@ public class MainMenu {
         for (int attempts = 0; attempts < 3; attempts++) {
             System.out.print("Email: ");
             String email = scanner.nextLine().trim();
-            System.out.print("Password: ");
+            System.out.print("Contrasena: ");
             String password = scanner.nextLine().trim();
             User user = authService.login(email, password);
             if (user != null) {
-                this.currentUser = user;
-                System.out.println("\nBienvenido " + user.getName() + " (" + user.getClass().getSimpleName() + ")\n");
+                this.currentUser = chooseUserType(user, password);
+                System.out.println("\nBienvenido " + currentUser.getName()
+                        + " (" + currentUser.getClass().getSimpleName() + ")\n");
                 return true;
             }
             System.out.println("Credenciales incorrectas. Intento " + (attempts + 1) + "/3\n");
         }
         return false;
+    }
+
+    private User chooseUserType(User original, String password) {
+        System.out.println("\nQue tipo de usuario quieres usar para esta sesion?");
+        System.out.println("  1. ClassicUser  (limite de 5 items y 3 colaboradores)");
+        System.out.println("  2. PremiumUser  (sin limites)");
+        System.out.print("Opcion: ");
+        String option = scanner.nextLine().trim();
+
+        return switch (option) {
+            case "1" -> new ClassicUser(original.getId(), original.getName(),
+                    original.getEmail(), password, 5, 3);
+            case "2" -> new PremiumUser(original.getId(), original.getName(),
+                    original.getEmail(), password);
+            default -> {
+                System.out.println("Opcion invalida. Se usa el tipo original ("
+                        + original.getClass().getSimpleName() + ").");
+                yield original;
+            }
+        };
     }
 
     private void mainLoop() {

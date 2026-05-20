@@ -1,32 +1,21 @@
 @startuml SecuenciaCambiarEstado
-title Diagrama de Secuencia - Cambiar estado de Task (concurrencia)\nSolo entre TaskWorker y Task
+title Diagrama de Secuencia\nCambiar estado de Task con concurrencia
 
 participant ":TaskWorker" as worker
 participant "task:Task" as task
 
 par Hilo-Maria
   worker -> task : modifyStatus(IN_PROGRESS)
-  activate task
-  task -> task : synchronized(this)
-  task -> task : status = IN_PROGRESS
   task --> worker
-  deactivate task
 else Hilo-Pedro
   worker -> task : modifyStatus(COMPLETED)
-  activate task
-  task -> task : synchronized(this)
-  task -> task : status = COMPLETED
   task --> worker
-  deactivate task
 end
 
-note right of task
-  CONCURRENCIA:
-  Dos hilos (Maria y Pedro) llaman
-  modifyStatus sobre la MISMA task.
-  synchronized serializa el acceso:
-  solo uno entra a la vez, el otro
-  espera. No hay estado corrupto.
+note over task
+  modifyStatus() es synchronized:
+  solo un hilo entra al monitor,
+  el otro espera. Sin race condition.
 end note
 
 @enduml

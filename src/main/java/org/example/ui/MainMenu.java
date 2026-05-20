@@ -26,6 +26,7 @@ public class MainMenu {
     private final AuthService authService;
     private final ConcurrentHashMap<Integer, Item> items = new ConcurrentHashMap<>();
     private final AtomicInteger idCounter = new AtomicInteger(1);
+    private final AtomicInteger nextUserId = new AtomicInteger(100);
     private User currentUser;
 
     public MainMenu() {
@@ -44,10 +45,11 @@ public class MainMenu {
         System.out.println("==========================================");
         System.out.println("    TODO COLLABORATIVE APP - Consola");
         System.out.println("==========================================");
-        System.out.println("Usuarios de prueba:");
-        System.out.println("  - angel@mail.com / 1234     (Premium)");
-        System.out.println("  - maria@mail.com / abcd     (Classic)");
-        System.out.println("  - pedro@mail.com / pass     (Classic)");
+        System.out.println("Podes ingresar cualquier email y contrasena,");
+        System.out.println("o usar uno de los usuarios pre-cargados:");
+        System.out.println("  - angel@mail.com  (Angel)");
+        System.out.println("  - maria@mail.com  (Maria)");
+        System.out.println("  - pedro@mail.com  (Pedro)");
         System.out.println();
 
         if (!login()) {
@@ -58,39 +60,55 @@ public class MainMenu {
     }
 
     private boolean login() {
-        for (int attempts = 0; attempts < 3; attempts++) {
-            System.out.print("Email: ");
-            String email = scanner.nextLine().trim();
-            System.out.print("Contrasena: ");
-            String password = scanner.nextLine().trim();
-            User user = authService.login(email, password);
-            if (user != null) {
-                this.currentUser = chooseUserType(user, password);
-                System.out.println("\nBienvenido " + currentUser.getName()
-                        + " (" + currentUser.getClass().getSimpleName() + ")\n");
-                return true;
-            }
-            System.out.println("Credenciales incorrectas. Intento " + (attempts + 1) + "/3\n");
+        System.out.print("Email: ");
+        String email = scanner.nextLine().trim();
+        if (email.isEmpty()) {
+            System.out.println("El email no puede estar vacio.");
+            return false;
         }
-        return false;
+
+        System.out.print("Contrasena: ");
+        String password = scanner.nextLine().trim();
+        if (password.isEmpty()) {
+            System.out.println("La contrasena no puede estar vacia.");
+            return false;
+        }
+
+        User user = createUserOfChosenType(email, password);
+        if (user == null) return false;
+
+        userService.register(user);
+        this.currentUser = user;
+
+        System.out.println("\nBienvenido " + user.getName()
+                + " (" + user.getClass().getSimpleName() + ")\n");
+        return true;
     }
 
-    private User chooseUserType(User original, String password) {
+    private User createUserOfChosenType(String email, String password) {
         System.out.println("\nQue tipo de usuario quieres usar para esta sesion?");
         System.out.println("  1. ClassicUser  (limite de 5 items y 3 colaboradores)");
         System.out.println("  2. PremiumUser  (sin limites)");
         System.out.print("Opcion: ");
         String option = scanner.nextLine().trim();
 
+        String name = email.contains("@")
+                ? email.substring(0, email.indexOf("@"))
+                : email;
+        if (!name.isEmpty()) {
+            name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
+        }
+
+        // Si el email ya existe, reusar el id; si no, generar uno nuevo
+        User existing = userService.findByEmail(email);
+        int id = (existing != null) ? existing.getId() : nextUserId.getAndIncrement();
+
         return switch (option) {
-            case "1" -> new ClassicUser(original.getId(), original.getName(),
-                    original.getEmail(), password, 5, 3);
-            case "2" -> new PremiumUser(original.getId(), original.getName(),
-                    original.getEmail(), password);
+            case "1" -> new ClassicUser(id, name, email, password, 5, 3);
+            case "2" -> new PremiumUser(id, name, email, password);
             default -> {
-                System.out.println("Opcion invalida. Se usa el tipo original ("
-                        + original.getClass().getSimpleName() + ").");
-                yield original;
+                System.out.println("Opcion invalida. Debes elegir 1 (Classic) o 2 (Premium).");
+                yield null;
             }
         };
     }

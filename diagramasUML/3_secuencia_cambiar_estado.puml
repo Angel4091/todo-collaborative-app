@@ -1,28 +1,22 @@
 @startuml SecuenciaCambiarEstado
-title Diagrama de Secuencia - Cambiar estado de Task con concurrencia\n(estructura par + loop + alt, con nuestras clases)
+title Diagrama de Secuencia - Cambiar estado de Task con concurrencia
 
-actor User1
-participant ":MainMenu" as menu1
-participant ":MainMenu" as menu2
+participant ":DemoRunner" as demo
 participant "task:Task" as task
 participant "hiloA :\nTaskWorker" as hiloA
 participant "hiloB :\nTaskWorker" as hiloB
-actor User2
 
-User1 -> menu1 : cambiar estado de Task
-menu1 -> menu1 : indexMenu()
-
-User2 -> menu2 : cambiar estado de Task
-
-menu1 -> hiloA : User1 : startThread(task, IN_PROGRESS)
-menu2 -> hiloB : User2 : startThread(task, COMPLETED)
+demo -> hiloA : startThread(task, IN_PROGRESS)
+demo -> hiloB : startThread(task, COMPLETED)
 
 par
   hiloA -> task : modifyStatus(IN_PROGRESS)
+  activate task
   task -> task : synchronized(this)
   task -> task : status = IN_PROGRESS
   task -> task : log "PENDING -> IN_PROGRESS"
   task --> hiloA : ok
+  deactivate task
 end
 
 loop Repetir hasta que el monitor este libre
@@ -32,18 +26,14 @@ end
 
 alt Monitor libre
   hiloB -> task : modifyStatus(COMPLETED)
+  activate task
   task -> task : synchronized(this)
   task -> task : status = COMPLETED
   task -> task : log "IN_PROGRESS -> COMPLETED"
   task --> hiloB : ok
+  deactivate task
 else Monitor ocupado
   hiloB -> hiloB : wait()
 end
-
-task --> User1 : notifyChange(task)
-task --> User2 : notifyChange(task)
-
-menu1 --> User1 : estado cambiado
-menu2 --> User2 : estado cambiado
 
 @enduml

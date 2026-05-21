@@ -5,27 +5,41 @@ participant TaskWorker
 participant Task
 
 par Hilo Maria
+  TaskWorker -> TaskWorker : new TaskWorker(task, IN_PROGRESS, maria)
+  activate TaskWorker #LightBlue
+  TaskWorker -> TaskWorker : Thread.start()
+  TaskWorker -> TaskWorker : run()
+  TaskWorker -> TaskWorker : Thread.sleep(100)
   TaskWorker -> Task : modifyStatus(IN_PROGRESS)
-  activate Task
+  activate Task #LightYellow
   Task -> Task : synchronized(this)
-  Task -> Task : status = IN_PROGRESS
-  Task -> Task : mostrarInformacion()
+  Task -> Task : oldStatus = PENDING
+  Task -> Task : this.status = IN_PROGRESS
+  Task -> Task : log "PENDING -> IN_PROGRESS"
   Task --> TaskWorker
   deactivate Task
+  deactivate TaskWorker
 else Hilo Pedro
+  TaskWorker -> TaskWorker : new TaskWorker(task, COMPLETED, pedro)
+  activate TaskWorker #LightBlue
+  TaskWorker -> TaskWorker : Thread.start()
+  TaskWorker -> TaskWorker : run()
+  TaskWorker -> TaskWorker : Thread.sleep(100)
   TaskWorker -> Task : modifyStatus(COMPLETED)
-  activate Task
+  activate Task #LightYellow
   Task -> Task : synchronized(this)
-  Task -> Task : status = COMPLETED
-  Task -> Task : mostrarInformacion()
+  Task -> Task : oldStatus = IN_PROGRESS
+  Task -> Task : this.status = COMPLETED
+  Task -> Task : log "IN_PROGRESS -> COMPLETED"
   Task --> TaskWorker
   deactivate Task
+  deactivate TaskWorker
 end
 
 note over Task
   modifyStatus() es synchronized:
-  los hilos se serializan en el
-  monitor. No hay race condition.
+  los hilos se serializan en el monitor.
+  No hay race condition.
 end note
 
 @enduml

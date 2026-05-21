@@ -1,28 +1,79 @@
 @startuml DiagramaActividadV2
-title Diagrama de Actividad - Cambiar estado de Task con concurrencia
+title Diagrama de Actividad v2 - Cambiar estado de una Task (modifyStatus)\n(Entregable 2 - acceso concurrente a una tarea compartida)
 
-|TaskWorker|
+|Sistema|
 start
-:Crear hilos Maria y Pedro;
+:Existe una Task compartida
+ entre Maria y Pedro;
+note right
+  Pre-condicion: la task ya
+  fue creada por el owner y
+  compartida con dos colaboradores
+  (Maria y Pedro).
+end note
+
+|Colaboradores|
+:Cada colaborador elige un
+ nuevo estado para la task;
+
+|Sistema|
+:Crear un TaskWorker por colaborador
+ envuelto en su propio Thread;
+note right
+  new Thread(new TaskWorker(task,
+  nuevoEstado, colaborador)).start()
+end note
+
 fork
-  :Ejecutar run() [Hilo Maria];
-  :Llamar modifyStatus(IN_PROGRESS);
+  |Hilo-Maria|
+  :TaskWorker.run();
+  :task.modifyStatus(IN_PROGRESS);
+  note right
+    Entra al metodo synchronized
+    de la task. Si Pedro llego
+    primero, Maria espera.
+  end note
+  if (Monitor disponible?) then (si)
+    :synchronized(this);
+    :status = IN_PROGRESS;
+    :log "PENDING -> IN_PROGRESS";
+  else (no, ocupado por Pedro)
+    :Esperar al monitor;
+    :Entrar a la seccion critica;
+    :status = IN_PROGRESS;
+  endif
 fork again
-  :Ejecutar run() [Hilo Pedro];
-  :Llamar modifyStatus(COMPLETED);
+  |Hilo-Pedro|
+  :TaskWorker.run();
+  :task.modifyStatus(COMPLETED);
+  note right
+    Mismo metodo synchronized.
+    Si Maria entro primero,
+    Pedro queda esperando.
+  end note
+  if (Monitor disponible?) then (si)
+    :synchronized(this);
+    :status = COMPLETED;
+    :log "IN_PROGRESS -> COMPLETED";
+  else (no, ocupado por Maria)
+    :Esperar al monitor;
+    :Entrar a la seccion critica;
+    :status = COMPLETED;
+  endif
 end fork
 
-|Task|
-if (Monitor disponible?) then (Si)
-  :Entrar synchronized(this);
-  :Actualizar status;
-  :Mostrar informacion;
-else (No)
-  :Esperar a que se libere el monitor;
-  -[hidden]->
-endif
+|Sistema|
+:Ambos hilos terminan (join);
+note right
+  CONCURRENCIA:
+  synchronized en modifyStatus
+  serializa los dos hilos sobre
+  el monitor de la task. No hay
+  estado corrupto: el ultimo hilo
+  en entrar deja el estado final.
+end note
 
-|TaskWorker|
+:Mostrar estado final de la task;
 stop
 
 @enduml

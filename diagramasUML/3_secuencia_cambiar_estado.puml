@@ -1,45 +1,39 @@
 @startuml SecuenciaCambiarEstado
-title Diagrama de Secuencia - Cambiar estado de Task con concurrencia
+title Diagrama de Secuencia - Cambiar estado de Task con concurrencia\n(basado en el diagrama de actividad)
 
 participant TaskWorker
 participant Task
 
-par Hilo Maria
-  TaskWorker -> TaskWorker : new TaskWorker(task, IN_PROGRESS, maria)
-  activate TaskWorker #LightBlue
-  TaskWorker -> TaskWorker : Thread.start()
-  TaskWorker -> TaskWorker : run()
-  TaskWorker -> TaskWorker : Thread.sleep(100)
-  TaskWorker -> Task : modifyStatus(IN_PROGRESS)
-  activate Task #LightYellow
-  Task -> Task : synchronized(this)
-  Task -> Task : oldStatus = PENDING
-  Task -> Task : this.status = IN_PROGRESS
-  Task -> Task : log "PENDING -> IN_PROGRESS"
-  Task --> TaskWorker
-  deactivate Task
-  deactivate TaskWorker
-else Hilo Pedro
-  TaskWorker -> TaskWorker : new TaskWorker(task, COMPLETED, pedro)
-  activate TaskWorker #LightBlue
-  TaskWorker -> TaskWorker : Thread.start()
-  TaskWorker -> TaskWorker : run()
-  TaskWorker -> TaskWorker : Thread.sleep(100)
-  TaskWorker -> Task : modifyStatus(COMPLETED)
-  activate Task #LightYellow
-  Task -> Task : synchronized(this)
-  Task -> Task : oldStatus = IN_PROGRESS
-  Task -> Task : this.status = COMPLETED
-  Task -> Task : log "IN_PROGRESS -> COMPLETED"
-  Task --> TaskWorker
-  deactivate Task
-  deactivate TaskWorker
-end
+TaskWorker -> TaskWorker : Crear hilos Maria y Pedro
+activate TaskWorker #LightBlue
 
-note over Task
-  modifyStatus() es synchronized:
-  los hilos se serializan en el monitor.
-  No hay race condition.
-end note
+par Hilo Maria
+  TaskWorker -> TaskWorker : Ejecutar run()
+  TaskWorker -> Task : Llamar modifyStatus(IN_PROGRESS)
+  activate Task #LightYellow
+  alt Monitor disponible
+    Task -> Task : Entrar synchronized(this)
+    Task -> Task : Actualizar status = IN_PROGRESS
+    Task -> Task : Mostrar informacion
+  else No disponible
+    Task -> Task : Esperar a que se libere el monitor
+  end
+  Task --> TaskWorker
+  deactivate Task
+else Hilo Pedro
+  TaskWorker -> TaskWorker : Ejecutar run()
+  TaskWorker -> Task : Llamar modifyStatus(COMPLETED)
+  activate Task #LightYellow
+  alt Monitor disponible
+    Task -> Task : Entrar synchronized(this)
+    Task -> Task : Actualizar status = COMPLETED
+    Task -> Task : Mostrar informacion
+  else No disponible
+    Task -> Task : Esperar a que se libere el monitor
+  end
+  Task --> TaskWorker
+  deactivate Task
+end
+deactivate TaskWorker
 
 @enduml

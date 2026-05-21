@@ -6,6 +6,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * Clase abstracta base de los items del sistema (Tasks y Reminders).
+ *
+ * <p>Implementa {@link Shareable} para que un item pueda compartirse con
+ * otros usuarios. La lista de colaboradores usa
+ * {@link CopyOnWriteArrayList} para permitir iteracion sin bloquear
+ * escrituras, y los metodos {@link #addCollaborator(User)} y
+ * {@link #removeCollaborator(User)} estan marcados como
+ * {@code synchronized} para evitar race conditions cuando dos hilos
+ * modifican la lista en paralelo.</p>
+ */
 public abstract class Item implements Shareable {
     protected int id;
     protected String title;

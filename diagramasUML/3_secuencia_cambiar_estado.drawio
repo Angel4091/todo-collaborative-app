@@ -1,280 +1,286 @@
 <mxfile host="app.diagrams.net" version="22.0.0">
   <diagram name="Secuencia" id="secuencia-1">
-    <mxGraphModel dx="1500" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1200" math="0" shadow="0">
+    <mxGraphModel dx="1500" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="1200" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
         <mxCell id="title" value="Diagrama de Secuencia - Cambiar estado de Task con concurrencia" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="100" y="10" width="1000" height="30" as="geometry" />
+          <mxGeometry x="50" y="10" width="1000" height="30" as="geometry" />
         </mxCell>
 
         <mxCell id="u1_top" value="User1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
-          <mxGeometry x="60" y="60" width="30" height="60" as="geometry" />
+          <mxGeometry x="50" y="60" width="30" height="60" as="geometry" />
         </mxCell>
         <mxCell id="u1_bot" value="User1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
-          <mxGeometry x="60" y="1150" width="30" height="60" as="geometry" />
+          <mxGeometry x="50" y="1130" width="30" height="60" as="geometry" />
         </mxCell>
         <mxCell id="u1_line" style="endArrow=none;html=1;strokeColor=#000000;dashed=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="75" y="120" as="sourcePoint" />
-            <mxPoint x="75" y="1150" as="targetPoint" />
+            <mxPoint x="65" y="120" as="sourcePoint" />
+            <mxPoint x="65" y="1130" as="targetPoint" />
           </mxGeometry>
         </mxCell>
 
         <mxCell id="m1_top" value=":MainMenu" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="170" y="70" width="100" height="40" as="geometry" />
+          <mxGeometry x="160" y="70" width="100" height="40" as="geometry" />
         </mxCell>
         <mxCell id="m1_bot" value=":MainMenu" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="170" y="1150" width="100" height="40" as="geometry" />
+          <mxGeometry x="160" y="1130" width="100" height="40" as="geometry" />
         </mxCell>
         <mxCell id="m1_line" style="endArrow=none;html=1;strokeColor=#000000;dashed=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="220" y="110" as="sourcePoint" />
-            <mxPoint x="220" y="1150" as="targetPoint" />
+            <mxPoint x="210" y="110" as="sourcePoint" />
+            <mxPoint x="210" y="1130" as="targetPoint" />
           </mxGeometry>
         </mxCell>
 
         <mxCell id="m2_top" value=":MainMenu" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="310" y="70" width="100" height="40" as="geometry" />
+          <mxGeometry x="300" y="70" width="100" height="40" as="geometry" />
         </mxCell>
         <mxCell id="m2_bot" value=":MainMenu" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="310" y="1150" width="100" height="40" as="geometry" />
+          <mxGeometry x="300" y="1130" width="100" height="40" as="geometry" />
         </mxCell>
         <mxCell id="m2_line" style="endArrow=none;html=1;strokeColor=#000000;dashed=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="360" y="110" as="sourcePoint" />
-            <mxPoint x="360" y="1150" as="targetPoint" />
+            <mxPoint x="350" y="110" as="sourcePoint" />
+            <mxPoint x="350" y="1130" as="targetPoint" />
           </mxGeometry>
         </mxCell>
 
         <mxCell id="task_top" value="task:Task" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="450" y="70" width="100" height="40" as="geometry" />
+          <mxGeometry x="440" y="70" width="100" height="40" as="geometry" />
         </mxCell>
         <mxCell id="task_bot" value="task:Task" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="450" y="1150" width="100" height="40" as="geometry" />
+          <mxGeometry x="440" y="1130" width="100" height="40" as="geometry" />
         </mxCell>
         <mxCell id="task_line" style="endArrow=none;html=1;strokeColor=#000000;dashed=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="500" y="110" as="sourcePoint" />
-            <mxPoint x="500" y="1150" as="targetPoint" />
+            <mxPoint x="490" y="110" as="sourcePoint" />
+            <mxPoint x="490" y="1130" as="targetPoint" />
           </mxGeometry>
         </mxCell>
 
         <mxCell id="ha_top" value="hiloA :&#xa;TaskWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="620" y="60" width="110" height="50" as="geometry" />
+          <mxGeometry x="610" y="60" width="110" height="50" as="geometry" />
         </mxCell>
         <mxCell id="ha_bot" value="hiloA :&#xa;TaskWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="620" y="1150" width="110" height="50" as="geometry" />
+          <mxGeometry x="610" y="1130" width="110" height="50" as="geometry" />
         </mxCell>
         <mxCell id="ha_line" style="endArrow=none;html=1;strokeColor=#000000;dashed=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="675" y="110" as="sourcePoint" />
-            <mxPoint x="675" y="1150" as="targetPoint" />
+            <mxPoint x="665" y="110" as="sourcePoint" />
+            <mxPoint x="665" y="1130" as="targetPoint" />
           </mxGeometry>
         </mxCell>
 
         <mxCell id="hb_top" value="hiloB :&#xa;TaskWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="820" y="60" width="110" height="50" as="geometry" />
+          <mxGeometry x="800" y="60" width="110" height="50" as="geometry" />
         </mxCell>
         <mxCell id="hb_bot" value="hiloB :&#xa;TaskWorker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="820" y="1150" width="110" height="50" as="geometry" />
+          <mxGeometry x="800" y="1130" width="110" height="50" as="geometry" />
         </mxCell>
         <mxCell id="hb_line" style="endArrow=none;html=1;strokeColor=#000000;dashed=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="875" y="110" as="sourcePoint" />
-            <mxPoint x="875" y="1150" as="targetPoint" />
+            <mxPoint x="855" y="110" as="sourcePoint" />
+            <mxPoint x="855" y="1130" as="targetPoint" />
           </mxGeometry>
         </mxCell>
 
         <mxCell id="u2_top" value="User2" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1050" y="60" width="30" height="60" as="geometry" />
+          <mxGeometry x="980" y="60" width="30" height="60" as="geometry" />
         </mxCell>
         <mxCell id="u2_bot" value="User2" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1050" y="1150" width="30" height="60" as="geometry" />
+          <mxGeometry x="980" y="1130" width="30" height="60" as="geometry" />
         </mxCell>
         <mxCell id="u2_line" style="endArrow=none;html=1;strokeColor=#000000;dashed=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1065" y="120" as="sourcePoint" />
-            <mxPoint x="1065" y="1150" as="targetPoint" />
+            <mxPoint x="995" y="120" as="sourcePoint" />
+            <mxPoint x="995" y="1130" as="targetPoint" />
           </mxGeometry>
         </mxCell>
 
-        <mxCell id="msg_req1" value="request change of status" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
+        <mxCell id="msg_req1" value="cambiar estado de Task" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="75" y="160" as="sourcePoint" />
-            <mxPoint x="220" y="160" as="targetPoint" />
+            <mxPoint x="65" y="160" as="sourcePoint" />
+            <mxPoint x="210" y="160" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="msg_index" value="indexMenu()" style="endArrow=classic;html=1;strokeColor=#000000;curved=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="220" y="190" as="sourcePoint" />
-            <mxPoint x="220" y="205" as="targetPoint" />
+            <mxPoint x="210" y="190" as="sourcePoint" />
+            <mxPoint x="210" y="205" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="280" y="197" />
+              <mxPoint x="270" y="197" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_req2" value="request change of status" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
+        <mxCell id="msg_req2" value="cambiar estado de Task" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="1065" y="240" as="sourcePoint" />
-            <mxPoint x="360" y="240" as="targetPoint" />
+            <mxPoint x="995" y="240" as="sourcePoint" />
+            <mxPoint x="350" y="240" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_startA" value="User1 : startThread(task, state)" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
+        <mxCell id="msg_startA" value="User1 : startThread(task, IN_PROGRESS)" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="220" y="280" as="sourcePoint" />
-            <mxPoint x="675" y="280" as="targetPoint" />
+            <mxPoint x="210" y="280" as="sourcePoint" />
+            <mxPoint x="665" y="280" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_startB" value="User2 : startThread(task, state)" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
+        <mxCell id="msg_startB" value="User2 : startThread(task, COMPLETED)" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="360" y="320" as="sourcePoint" />
-            <mxPoint x="875" y="320" as="targetPoint" />
+            <mxPoint x="350" y="320" as="sourcePoint" />
+            <mxPoint x="855" y="320" as="targetPoint" />
           </mxGeometry>
         </mxCell>
 
         <mxCell id="parFrame" value="par" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;align=left;verticalAlign=top;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="440" y="350" width="500" height="240" as="geometry" />
+          <mxGeometry x="430" y="350" width="500" height="200" as="geometry" />
         </mxCell>
 
-        <mxCell id="msg_check1" value="checkAvailability()" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
+        <mxCell id="msg_modA" value="modifyStatus(IN_PROGRESS)" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="675" y="400" as="sourcePoint" />
-            <mxPoint x="500" y="400" as="targetPoint" />
+            <mxPoint x="665" y="400" as="sourcePoint" />
+            <mxPoint x="490" y="400" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_ret1" value="return true" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
+        <mxCell id="msg_syncA" value="synchronized(this)" style="endArrow=classic;html=1;strokeColor=#000000;curved=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="500" y="425" as="sourcePoint" />
-            <mxPoint x="675" y="425" as="targetPoint" />
+            <mxPoint x="490" y="430" as="sourcePoint" />
+            <mxPoint x="490" y="445" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="560" y="438" />
+            </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_lock1" value="lockTask(task)" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
+        <mxCell id="msg_statusA" value="status = IN_PROGRESS" style="endArrow=classic;html=1;strokeColor=#000000;curved=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="675" y="450" as="sourcePoint" />
-            <mxPoint x="500" y="450" as="targetPoint" />
+            <mxPoint x="490" y="465" as="sourcePoint" />
+            <mxPoint x="490" y="480" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="560" y="472" />
+            </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_locked1" value="locked" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
+        <mxCell id="msg_logA" value="log &quot;PENDING -&gt; IN_PROGRESS&quot;" style="endArrow=classic;html=1;strokeColor=#000000;curved=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="500" y="475" as="sourcePoint" />
-            <mxPoint x="675" y="475" as="targetPoint" />
+            <mxPoint x="490" y="500" as="sourcePoint" />
+            <mxPoint x="490" y="515" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="560" y="508" />
+            </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_chg1" value="changeState(newState)" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
+        <mxCell id="msg_okA" value="ok" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="675" y="500" as="sourcePoint" />
-            <mxPoint x="500" y="500" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="msg_unlock1" value="unlockTask(task)" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="675" y="530" as="sourcePoint" />
-            <mxPoint x="500" y="530" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="msg_unlk1" value="unlocked" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="500" y="560" as="sourcePoint" />
-            <mxPoint x="675" y="560" as="targetPoint" />
+            <mxPoint x="490" y="535" as="sourcePoint" />
+            <mxPoint x="665" y="535" as="targetPoint" />
           </mxGeometry>
         </mxCell>
 
-        <mxCell id="loopFrame" value="loop  [Repetir hasta que la task este disponible]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;align=left;verticalAlign=top;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="440" y="620" width="500" height="100" as="geometry" />
+        <mxCell id="loopFrame" value="loop  [Repetir hasta que el monitor este libre]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;align=left;verticalAlign=top;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="430" y="580" width="500" height="110" as="geometry" />
         </mxCell>
 
-        <mxCell id="msg_check2" value="checkAvailability()" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
+        <mxCell id="msg_modB_try" value="modifyStatus(COMPLETED)" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="875" y="660" as="sourcePoint" />
-            <mxPoint x="500" y="660" as="targetPoint" />
+            <mxPoint x="855" y="625" as="sourcePoint" />
+            <mxPoint x="490" y="625" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_ret2" value="return true" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
+        <mxCell id="msg_busy" value="monitor ocupado" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="500" y="690" as="sourcePoint" />
-            <mxPoint x="875" y="690" as="targetPoint" />
+            <mxPoint x="490" y="660" as="sourcePoint" />
+            <mxPoint x="855" y="660" as="targetPoint" />
           </mxGeometry>
         </mxCell>
 
-        <mxCell id="altFrame" value="alt  [Available task]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;align=left;verticalAlign=top;fontStyle=1" vertex="1" parent="1">
-          <mxGeometry x="440" y="750" width="500" height="320" as="geometry" />
+        <mxCell id="altFrame" value="alt  [Monitor libre]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;align=left;verticalAlign=top;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="430" y="720" width="500" height="320" as="geometry" />
         </mxCell>
 
-        <mxCell id="msg_lock2" value="lockTask(task)" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
+        <mxCell id="msg_modB" value="modifyStatus(COMPLETED)" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="875" y="790" as="sourcePoint" />
-            <mxPoint x="500" y="790" as="targetPoint" />
+            <mxPoint x="855" y="765" as="sourcePoint" />
+            <mxPoint x="490" y="765" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_locked2" value="locked" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
+        <mxCell id="msg_syncB" value="synchronized(this)" style="endArrow=classic;html=1;strokeColor=#000000;curved=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="500" y="815" as="sourcePoint" />
-            <mxPoint x="875" y="815" as="targetPoint" />
+            <mxPoint x="490" y="795" as="sourcePoint" />
+            <mxPoint x="490" y="810" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="560" y="802" />
+            </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_chg2" value="changeState(newState)" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
+        <mxCell id="msg_statusB" value="status = COMPLETED" style="endArrow=classic;html=1;strokeColor=#000000;curved=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="875" y="840" as="sourcePoint" />
-            <mxPoint x="500" y="840" as="targetPoint" />
+            <mxPoint x="490" y="830" as="sourcePoint" />
+            <mxPoint x="490" y="845" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="560" y="838" />
+            </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_unlock2" value="unlockTask(task)" style="endArrow=classic;html=1;strokeColor=#000000" edge="1" parent="1">
+        <mxCell id="msg_logB" value="log &quot;IN_PROGRESS -&gt; COMPLETED&quot;" style="endArrow=classic;html=1;strokeColor=#000000;curved=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="875" y="870" as="sourcePoint" />
-            <mxPoint x="500" y="870" as="targetPoint" />
+            <mxPoint x="490" y="865" as="sourcePoint" />
+            <mxPoint x="490" y="880" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="560" y="872" />
+            </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_unlk2" value="unlocked" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
+        <mxCell id="msg_okB" value="ok" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="500" y="900" as="sourcePoint" />
-            <mxPoint x="875" y="900" as="targetPoint" />
+            <mxPoint x="490" y="900" as="sourcePoint" />
+            <mxPoint x="855" y="900" as="targetPoint" />
           </mxGeometry>
         </mxCell>
 
         <mxCell id="altDivider" style="endArrow=none;html=1;strokeColor=#000000;dashed=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="440" y="940" as="sourcePoint" />
-            <mxPoint x="940" y="940" as="targetPoint" />
+            <mxPoint x="430" y="935" as="sourcePoint" />
+            <mxPoint x="930" y="935" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="altElseLabel" value="[Busy task]" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=11" vertex="1" parent="1">
-          <mxGeometry x="450" y="948" width="100" height="20" as="geometry" />
+        <mxCell id="altElseLabel" value="[Monitor ocupado]" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="440" y="943" width="120" height="20" as="geometry" />
         </mxCell>
 
         <mxCell id="msg_wait" value="wait()" style="endArrow=classic;html=1;strokeColor=#000000;curved=1" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="875" y="1000" as="sourcePoint" />
-            <mxPoint x="875" y="1020" as="targetPoint" />
+            <mxPoint x="855" y="985" as="sourcePoint" />
+            <mxPoint x="855" y="1000" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="940" y="1010" />
+              <mxPoint x="920" y="992" />
             </Array>
           </mxGeometry>
         </mxCell>
 
         <mxCell id="msg_notif1" value="notifyChange(task)" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="500" y="1090" as="sourcePoint" />
-            <mxPoint x="75" y="1090" as="targetPoint" />
+            <mxPoint x="490" y="1070" as="sourcePoint" />
+            <mxPoint x="65" y="1070" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="msg_notif2" value="notifyChange(task)" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="500" y="1110" as="sourcePoint" />
-            <mxPoint x="1065" y="1110" as="targetPoint" />
+            <mxPoint x="490" y="1090" as="sourcePoint" />
+            <mxPoint x="995" y="1090" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_state1" value="stateChange" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
+        <mxCell id="msg_state1" value="estado cambiado" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="220" y="1130" as="sourcePoint" />
-            <mxPoint x="75" y="1130" as="targetPoint" />
+            <mxPoint x="210" y="1110" as="sourcePoint" />
+            <mxPoint x="65" y="1110" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="msg_state2" value="stateChange" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
+        <mxCell id="msg_state2" value="estado cambiado" style="endArrow=open;html=1;strokeColor=#000000;dashed=1;endSize=8" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="360" y="1145" as="sourcePoint" />
-            <mxPoint x="1065" y="1145" as="targetPoint" />
+            <mxPoint x="350" y="1125" as="sourcePoint" />
+            <mxPoint x="995" y="1125" as="targetPoint" />
           </mxGeometry>
         </mxCell>
 

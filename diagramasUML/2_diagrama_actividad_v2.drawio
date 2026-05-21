@@ -1,130 +1,249 @@
 <mxfile host="app.diagrams.net" version="22.0.0">
   <diagram name="Actividad" id="actividad-cambiar-estado">
-    <mxGraphModel dx="1500" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="900" math="0" shadow="0">
+    <mxGraphModel dx="1700" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
-        <mxCell id="title_note" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;font style=&quot;font-size: 15px;&quot;&gt;Diagrama de Actividad&lt;/font&gt;" vertex="1">
-          <mxGeometry x="20" y="20" width="160" height="60" as="geometry" />
+        <mxCell id="title" value="Diagrama de Actividad v2 - Cambiar estado de una Task (modifyStatus) - (Entregable 2 - acceso concurrente a una tarea compartida)" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="1320" height="30" as="geometry" />
         </mxCell>
 
-        <mxCell id="outer" parent="1" style="swimlane;html=1;startSize=25;fontSize=14;fontStyle=1;fillColor=#FFFFFF;strokeColor=#000000" value="Cambiar estado de Task con concurrencia" vertex="1">
-          <mxGeometry x="200" y="40" width="880" height="830" as="geometry" />
+        <mxCell id="outer" parent="1" style="swimlane;html=1;startSize=25;fontSize=12;fontStyle=1;fillColor=#FFFFFF;strokeColor=#000000" value="Cambiar estado de Task" vertex="1">
+          <mxGeometry x="20" y="50" width="1360" height="820" as="geometry" />
         </mxCell>
 
-        <mxCell id="lane_tw" parent="outer" style="swimlane;html=1;startSize=25;fillColor=#F8F8F8;strokeColor=#000000;fontSize=12;fontStyle=1" value="TaskWorker" vertex="1">
-          <mxGeometry x="0" y="25" width="540" height="805" as="geometry" />
+        <mxCell id="lane_sys" parent="outer" style="swimlane;html=1;startSize=25;fillColor=#F8F8F8;strokeColor=#000000;fontSize=12;fontStyle=1" value="Sistema" vertex="1">
+          <mxGeometry x="0" y="25" width="340" height="795" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_col" parent="outer" style="swimlane;html=1;startSize=25;fillColor=#FFFFFF;strokeColor=#000000;fontSize=12;fontStyle=1" value="Colaboradores" vertex="1">
+          <mxGeometry x="340" y="25" width="220" height="795" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_maria" parent="outer" style="swimlane;html=1;startSize=25;fillColor=#F8F8F8;strokeColor=#000000;fontSize=12;fontStyle=1" value="Hilo-Maria" vertex="1">
+          <mxGeometry x="560" y="25" width="400" height="795" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_pedro" parent="outer" style="swimlane;html=1;startSize=25;fillColor=#FFFFFF;strokeColor=#000000;fontSize=12;fontStyle=1" value="Hilo-Pedro" vertex="1">
+          <mxGeometry x="960" y="25" width="400" height="795" as="geometry" />
         </mxCell>
 
-        <mxCell id="lane_t" parent="outer" style="swimlane;html=1;startSize=25;fillColor=#FFFFFF;strokeColor=#000000;fontSize=12;fontStyle=1" value="Task" vertex="1">
-          <mxGeometry x="540" y="25" width="340" height="805" as="geometry" />
+        <mxCell id="start" parent="lane_sys" style="ellipse;fillColor=#000000;html=1;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry x="155" y="20" width="30" height="30" as="geometry" />
         </mxCell>
 
-        <mxCell id="start" parent="lane_tw" style="ellipse;fillColor=#000000;html=1;strokeColor=#000000;" value="" vertex="1">
-          <mxGeometry x="255" y="30" width="30" height="30" as="geometry" />
+        <mxCell id="act_existe" parent="lane_sys" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Existe una Task compartida entre Maria y Pedro" vertex="1">
+          <mxGeometry x="50" y="80" width="240" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="act_create" parent="lane_tw" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Crear hilos Maria y Pedro" vertex="1">
-          <mxGeometry x="180" y="90" width="180" height="60" as="geometry" />
+        <mxCell id="note_pre" parent="lane_sys" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;fontSize=11" value="Pre-condicion: la task ya fue creada por el owner y compartida con dos colaboradores (Maria y Pedro)." vertex="1">
+          <mxGeometry x="50" y="150" width="240" height="70" as="geometry" />
         </mxCell>
 
-        <mxCell id="fork" parent="lane_tw" style="rounded=0;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
-          <mxGeometry x="40" y="180" width="460" height="8" as="geometry" />
+        <mxCell id="act_crear" parent="lane_sys" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Crear un TaskWorker por colaborador envuelto en su propio Thread" vertex="1">
+          <mxGeometry x="50" y="280" width="240" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="run_maria" parent="lane_tw" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Ejecutar run() [Hilo Maria]" vertex="1">
-          <mxGeometry x="40" y="220" width="200" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="mod_maria" parent="lane_tw" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Llamar modifyStatus(IN_PROGRESS)" vertex="1">
-          <mxGeometry x="40" y="310" width="200" height="60" as="geometry" />
+        <mxCell id="note_new" parent="lane_sys" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;fontSize=10" value="new Thread(new TaskWorker(task, nuevoEstado, colaborador)).start()" vertex="1">
+          <mxGeometry x="50" y="350" width="240" height="50" as="geometry" />
         </mxCell>
 
-        <mxCell id="run_pedro" parent="lane_tw" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Ejecutar run() [Hilo Pedro]" vertex="1">
-          <mxGeometry x="300" y="220" width="200" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="mod_pedro" parent="lane_tw" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Llamar modifyStatus(COMPLETED)" vertex="1">
-          <mxGeometry x="300" y="310" width="200" height="60" as="geometry" />
+        <mxCell id="fork" parent="outer" style="rounded=0;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry x="20" y="450" width="1320" height="8" as="geometry" />
         </mxCell>
 
-        <mxCell id="join" parent="lane_tw" style="rounded=0;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
-          <mxGeometry x="40" y="650" width="460" height="8" as="geometry" />
+        <mxCell id="join" parent="outer" style="rounded=0;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry x="20" y="690" width="1320" height="8" as="geometry" />
         </mxCell>
 
-        <mxCell id="end" parent="lane_tw" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
-          <mxGeometry x="255" y="710" width="30" height="30" as="geometry" />
+        <mxCell id="act_join" parent="lane_sys" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Ambos hilos terminan (join)" vertex="1">
+          <mxGeometry x="65" y="690" width="210" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="e_start_create" edge="1" parent="lane_tw" source="start" target="act_create" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+        <mxCell id="note_conc" parent="lane_sys" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;fontSize=10" value="CONCURRENCIA: synchronized en modifyStatus serializa los dos hilos sobre el monitor de la task. No hay estado corrupto: el ultimo hilo en entrar deja el estado final." vertex="1">
+          <mxGeometry x="50" y="600" width="240" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="act_mostrar" parent="lane_sys" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Mostrar estado final de la task" vertex="1">
+          <mxGeometry x="65" y="710" width="210" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="end" parent="lane_sys" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry x="155" y="770" width="30" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="act_elige" parent="lane_col" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Cada colaborador elige un nuevo estado para la task" vertex="1">
+          <mxGeometry x="30" y="180" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mw1" parent="lane_maria" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="TaskWorker.run()" vertex="1">
+          <mxGeometry x="120" y="30" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="mw2" parent="lane_maria" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="task.modifyStatus(IN_PROGRESS)" vertex="1">
+          <mxGeometry x="110" y="90" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="note_mw" parent="lane_maria" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;fontSize=10" value="Entra al metodo synchronized de la task. Si Pedro llego primero, Maria espera." vertex="1">
+          <mxGeometry x="290" y="80" width="100" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mw_dec" parent="lane_maria" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" value="Monitor disponible?" vertex="1">
+          <mxGeometry x="130" y="150" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mw_sync" parent="lane_maria" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="synchronized(this)" vertex="1">
+          <mxGeometry x="30" y="240" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="mw_st" parent="lane_maria" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="status = IN_PROGRESS" vertex="1">
+          <mxGeometry x="30" y="295" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="mw_log" parent="lane_maria" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="log &quot;PENDING -&gt; IN_PROGRESS&quot;" vertex="1">
+          <mxGeometry x="20" y="350" width="170" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mw_wait" parent="lane_maria" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Esperar al monitor" vertex="1">
+          <mxGeometry x="220" y="240" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="mw_enter" parent="lane_maria" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Entrar a la seccion critica" vertex="1">
+          <mxGeometry x="220" y="295" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="mw_st2" parent="lane_maria" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="status = IN_PROGRESS" vertex="1">
+          <mxGeometry x="220" y="350" width="160" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mw_merge" parent="lane_maria" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry x="180" y="410" width="40" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pw1" parent="lane_pedro" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="TaskWorker.run()" vertex="1">
+          <mxGeometry x="120" y="30" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="pw2" parent="lane_pedro" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="task.modifyStatus(COMPLETED)" vertex="1">
+          <mxGeometry x="110" y="90" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="note_pw" parent="lane_pedro" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;fontSize=10" value="Mismo metodo synchronized. Si Maria entro primero, Pedro queda esperando." vertex="1">
+          <mxGeometry x="290" y="80" width="100" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pw_dec" parent="lane_pedro" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" value="Monitor disponible?" vertex="1">
+          <mxGeometry x="130" y="150" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pw_sync" parent="lane_pedro" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="synchronized(this)" vertex="1">
+          <mxGeometry x="30" y="240" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="pw_st" parent="lane_pedro" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="status = COMPLETED" vertex="1">
+          <mxGeometry x="30" y="295" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="pw_log" parent="lane_pedro" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="log &quot;IN_PROGRESS -&gt; COMPLETED&quot;" vertex="1">
+          <mxGeometry x="20" y="350" width="170" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pw_wait" parent="lane_pedro" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Esperar al monitor" vertex="1">
+          <mxGeometry x="220" y="240" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="pw_enter" parent="lane_pedro" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Entrar a la seccion critica" vertex="1">
+          <mxGeometry x="220" y="295" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="pw_st2" parent="lane_pedro" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="status = COMPLETED" vertex="1">
+          <mxGeometry x="220" y="350" width="160" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pw_merge" parent="lane_pedro" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry x="180" y="410" width="40" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" edge="1" parent="lane_sys" source="start" target="act_existe" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_create_fork" edge="1" parent="lane_tw" source="act_create" target="fork" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+        <mxCell id="e2" edge="1" parent="outer" source="act_existe" target="act_elige" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_fork_runM" edge="1" parent="lane_tw" source="fork" target="run_maria" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+        <mxCell id="e3" edge="1" parent="outer" source="act_elige" target="act_crear" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_runM_modM" edge="1" parent="lane_tw" source="run_maria" target="mod_maria" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_fork_runP" edge="1" parent="lane_tw" source="fork" target="run_pedro" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_runP_modP" edge="1" parent="lane_tw" source="run_pedro" target="mod_pedro" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_join_end" edge="1" parent="lane_tw" source="join" target="end" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+        <mxCell id="e4" edge="1" parent="outer" source="act_crear" target="fork" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
-        <mxCell id="dec_monitor" parent="lane_t" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;" value="¿Monitor disponible?" vertex="1">
-          <mxGeometry x="30" y="290" width="140" height="100" as="geometry" />
-        </mxCell>
-
-        <mxCell id="act_wait" parent="lane_t" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Esperar a que se libere el monitor" vertex="1">
-          <mxGeometry x="200" y="310" width="130" height="60" as="geometry" />
-        </mxCell>
-
-        <mxCell id="act_sync" parent="lane_t" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Entrar synchronized(this)" vertex="1">
-          <mxGeometry x="30" y="450" width="160" height="60" as="geometry" />
-        </mxCell>
-
-        <mxCell id="act_update" parent="lane_t" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Actualizar status" vertex="1">
-          <mxGeometry x="30" y="540" width="160" height="60" as="geometry" />
-        </mxCell>
-
-        <mxCell id="act_show" parent="lane_t" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;rounded=1;" value="Mostrar informacion" vertex="1">
-          <mxGeometry x="30" y="630" width="160" height="60" as="geometry" />
-        </mxCell>
-
-        <mxCell id="e_dec_wait" edge="1" parent="lane_t" source="dec_monitor" target="act_wait" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="No">
+        <mxCell id="e5" edge="1" parent="outer" source="fork" target="mw1" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_dec_sync" edge="1" parent="lane_t" source="dec_monitor" target="act_sync" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="Si">
+        <mxCell id="e6" edge="1" parent="lane_maria" source="mw1" target="mw2" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_wait_dec" edge="1" parent="lane_t" source="act_wait" target="dec_monitor" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="265" y="260" />
-              <mxPoint x="100" y="260" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e_sync_update" edge="1" parent="lane_t" source="act_sync" target="act_update" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+        <mxCell id="e7" edge="1" parent="lane_maria" source="mw2" target="mw_dec" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_update_show" edge="1" parent="lane_t" source="act_update" target="act_show" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+        <mxCell id="e8" edge="1" parent="lane_maria" source="mw_dec" target="mw_sync" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="si">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="lane_maria" source="mw_sync" target="mw_st" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="lane_maria" source="mw_st" target="mw_log" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="lane_maria" source="mw_dec" target="mw_wait" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="no">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="lane_maria" source="mw_wait" target="mw_enter" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="lane_maria" source="mw_enter" target="mw_st2" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="lane_maria" source="mw_log" target="mw_merge" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="lane_maria" source="mw_st2" target="mw_merge" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="outer" source="mw_merge" target="join" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
-        <mxCell id="e_modM_dec" edge="1" parent="outer" source="mod_maria" target="dec_monitor" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
+        <mxCell id="e5p" edge="1" parent="outer" source="fork" target="pw1" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_modP_dec" edge="1" parent="outer" source="mod_pedro" target="dec_monitor" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
+        <mxCell id="e6p" edge="1" parent="lane_pedro" source="pw1" target="pw2" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_show_join" edge="1" parent="outer" source="act_show" target="join" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
+        <mxCell id="e7p" edge="1" parent="lane_pedro" source="pw2" target="pw_dec" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8p" edge="1" parent="lane_pedro" source="pw_dec" target="pw_sync" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="si">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9p" edge="1" parent="lane_pedro" source="pw_sync" target="pw_st" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10p" edge="1" parent="lane_pedro" source="pw_st" target="pw_log" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11p" edge="1" parent="lane_pedro" source="pw_dec" target="pw_wait" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="no">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12p" edge="1" parent="lane_pedro" source="pw_wait" target="pw_enter" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13p" edge="1" parent="lane_pedro" source="pw_enter" target="pw_st2" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14p" edge="1" parent="lane_pedro" source="pw_log" target="pw_merge" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15p" edge="1" parent="lane_pedro" source="pw_st2" target="pw_merge" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16p" edge="1" parent="outer" source="pw_merge" target="join" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e17" edge="1" parent="outer" source="join" target="act_join" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;edgeStyle=orthogonalEdgeStyle;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="lane_sys" source="act_join" target="act_mostrar" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="lane_sys" source="act_mostrar" target="end" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 

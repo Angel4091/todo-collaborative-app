@@ -1,5 +1,5 @@
 @startuml SecuenciaCambiarEstado
-title Diagrama de Secuencia - Cambiar estado de Task con concurrencia\n(basado en la referencia: par + loop + alt)
+title Diagrama de Secuencia - Cambiar estado de Task con concurrencia\n(estructura par + loop + alt, con nuestras clases)
 
 actor User1
 participant ":MainMenu" as menu1
@@ -9,43 +9,41 @@ participant "hiloA :\nTaskWorker" as hiloA
 participant "hiloB :\nTaskWorker" as hiloB
 actor User2
 
-User1 -> menu1 : request change of status
+User1 -> menu1 : cambiar estado de Task
 menu1 -> menu1 : indexMenu()
 
-User2 -> menu2 : request change of status
+User2 -> menu2 : cambiar estado de Task
 
-menu1 -> hiloA : User1 : startThread(task, state)
-menu2 -> hiloB : User2 : startThread(task, state)
+menu1 -> hiloA : User1 : startThread(task, IN_PROGRESS)
+menu2 -> hiloB : User2 : startThread(task, COMPLETED)
 
 par
-  hiloA -> task : checkAvailability()
-  task --> hiloA : return true
-  hiloA -> task : lockTask(task)
-  task --> hiloA : locked
-  hiloA -> task : changeState(newState)
-  hiloA -> task : unlockTask(task)
-  task --> hiloA : unlocked
+  hiloA -> task : modifyStatus(IN_PROGRESS)
+  task -> task : synchronized(this)
+  task -> task : status = IN_PROGRESS
+  task -> task : log "PENDING -> IN_PROGRESS"
+  task --> hiloA : ok
 end
 
-loop Repetir hasta que la task este disponible
-  hiloB -> task : checkAvailability()
-  task --> hiloB : return true
+loop Repetir hasta que el monitor este libre
+  hiloB -> task : modifyStatus(COMPLETED)
+  task --> hiloB : monitor ocupado
 end
 
-alt Available task
-  hiloB -> task : lockTask(task)
-  task --> hiloB : locked
-  hiloB -> task : changeState(newState)
-  hiloB -> task : unlockTask(task)
-  task --> hiloB : unlocked
-else Busy task
+alt Monitor libre
+  hiloB -> task : modifyStatus(COMPLETED)
+  task -> task : synchronized(this)
+  task -> task : status = COMPLETED
+  task -> task : log "IN_PROGRESS -> COMPLETED"
+  task --> hiloB : ok
+else Monitor ocupado
   hiloB -> hiloB : wait()
 end
 
 task --> User1 : notifyChange(task)
 task --> User2 : notifyChange(task)
 
-menu1 --> User1 : stateChange
-menu2 --> User2 : stateChange
+menu1 --> User1 : estado cambiado
+menu2 --> User2 : estado cambiado
 
 @enduml

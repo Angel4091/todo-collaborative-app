@@ -1,35 +1,31 @@
 @startuml SecuenciaCambiarEstado
 title Diagrama de Secuencia - Cambiar estado de Task con concurrencia
 
-actor Usuario
-participant ":TaskWorker\n(Maria)" as wMaria
-participant ":TaskWorker\n(Pedro)" as wPedro
-participant "task:Task" as task
+participant TaskWorker
+participant Task
 
-== Cambio de estado - Hilo Maria ==
-
-par [Hilo 1 ejecuta]
-  Usuario -> wMaria : start()
-  activate wMaria
-  wMaria -> task : modifyStatus(IN_PROGRESS)
-  activate task
-  task -> task : status = "IN_PROGRESS"
-  task -> task : mostrarInformacion()
-  deactivate task
-  deactivate wMaria
+par Hilo Maria
+  TaskWorker -> Task : modifyStatus(IN_PROGRESS)
+  activate Task
+  Task -> Task : synchronized(this)
+  Task -> Task : status = IN_PROGRESS
+  Task -> Task : mostrarInformacion()
+  Task --> TaskWorker
+  deactivate Task
+else Hilo Pedro
+  TaskWorker -> Task : modifyStatus(COMPLETED)
+  activate Task
+  Task -> Task : synchronized(this)
+  Task -> Task : status = COMPLETED
+  Task -> Task : mostrarInformacion()
+  Task --> TaskWorker
+  deactivate Task
 end
 
-== Cambio de estado - Hilo Pedro ==
-
-par [Hilo 2 ejecuta]
-  Usuario -> wPedro : start()
-  activate wPedro
-  wPedro -> task : modifyStatus(COMPLETED)
-  activate task
-  task -> task : status = "COMPLETED"
-  task -> task : mostrarInformacion()
-  deactivate task
-  deactivate wPedro
-end
+note over Task
+  modifyStatus() es synchronized:
+  los hilos se serializan en el
+  monitor. No hay race condition.
+end note
 
 @enduml

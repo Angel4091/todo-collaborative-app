@@ -1,24 +1,20 @@
 @startuml DiagramaActividadV2
 title Diagrama de Actividad - Cambiar estado de Task con concurrencia
 
-|Hilo Maria|
+|TaskWorker|
 start
 fork
-  :Crear TaskWorker(task, IN_PROGRESS, maria);
-  :Iniciar hilo (Thread.start());
-  :Ejecutar run();
-  :Llamar modifyStatus(IN_PROGRESS) [synchronized];
-  :Actualizar status a IN_PROGRESS;
-  :Mostrar informacion;
+  :run() [Hilo Maria];
+  :Llamar modifyStatus(IN_PROGRESS);
 fork again
-  |Hilo Pedro|
-  :Crear TaskWorker(task, COMPLETED, pedro);
-  :Iniciar hilo (Thread.start());
-  :Ejecutar run();
-  :Llamar modifyStatus(COMPLETED) [synchronized];
-  :Actualizar status a COMPLETED;
-  :Mostrar informacion;
+  :run() [Hilo Pedro];
+  :Llamar modifyStatus(COMPLETED);
 end fork
+
+|Task|
+:Entrar synchronized(this);
+:Actualizar status;
+:Mostrar informacion;
 stop
 
 @enduml

@@ -3,19 +3,12 @@ package org.example.model;
 import org.example.catalog.Priority;
 import org.example.patterns.NotificationStrategy;
 
-/**
- * Item del tipo recordatorio (Reminder). Ademas de los atributos de
- * {@link Item}, tiene una fecha/hora y una
- * {@link NotificationStrategy} que decide COMO notifica al usuario
- * cuando se dispara la alerta.
- *
- * <p>Esta clase es el punto donde se aplica el PATRON STRATEGY: la
- * estrategia se inyecta con {@link #setNotificationStrategy} y
- * {@link #notifyAlert()} delega en ella sin saber si es Email o
- * Mensaje de Texto.</p>
- */
+// Subclase de Item que representa un recordatorio.
+// Es donde se aplica el PATRON STRATEGY: la estrategia de notificacion
+// (Email o Mensaje de Texto) se inyecta y se puede cambiar en runtime.
 public class Reminder extends Item {
     private String dateTime;
+    // La estrategia decide COMO se entrega el aviso.
     private NotificationStrategy notificationStrategy;
 
     public Reminder(int id, String title, String description, Priority priority, User owner, String dateTime) {
@@ -47,15 +40,13 @@ public class Reminder extends Item {
         return notificationStrategy;
     }
 
+    // Permite cambiar la estrategia en cualquier momento (Strategy pattern).
     public void setNotificationStrategy(NotificationStrategy strategy) {
         this.notificationStrategy = strategy;
     }
 
-    /**
-     * Dispara la notificacion del recordatorio usando la estrategia
-     * configurada. Si no hay estrategia asignada, muestra un mensaje
-     * de aviso. Es el ejemplo en vivo del PATRON STRATEGY.
-     */
+    // Dispara la notificacion delegando en la estrategia configurada.
+    // Si no hay estrategia, avisa por consola.
     public void notifyAlert() {
         if (notificationStrategy == null) {
             System.out.println("[Reminder '" + title + "'] No hay estrategia de notificacion configurada.");

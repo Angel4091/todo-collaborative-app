@@ -6,23 +6,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * Clase abstracta base de los items del sistema (Tasks y Reminders).
- *
- * <p>Implementa {@link Shareable} para que un item pueda compartirse con
- * otros usuarios. La lista de colaboradores usa
- * {@link CopyOnWriteArrayList} para permitir iteracion sin bloquear
- * escrituras, y los metodos {@link #addCollaborator(User)} y
- * {@link #removeCollaborator(User)} estan marcados como
- * {@code synchronized} para evitar race conditions cuando dos hilos
- * modifican la lista en paralelo.</p>
- */
+// Clase base abstracta de los items del sistema (Tasks y Reminders).
+// Implementa Shareable: se puede compartir con otros usuarios.
+// La lista de colaboradores y los metodos que la tocan son thread-safe
+// para soportar acceso concurrente desde varios hilos.
 public abstract class Item implements Shareable {
     protected int id;
     protected String title;
     protected String description;
     protected Priority priority;
     protected User owner;
+    // CopyOnWriteArrayList: permite iterar sin bloquear escrituras.
     protected List<User> collaborators;
 
     public Item(int id, String title, String description, Priority priority, User owner) {
@@ -34,6 +28,8 @@ public abstract class Item implements Shareable {
         this.collaborators = new CopyOnWriteArrayList<>();
     }
 
+    // synchronized: si dos hilos llaman a la vez, solo uno entra.
+    // Asi no hay race condition al agregar colaboradores.
     @Override
     public synchronized void addCollaborator(User user) {
         if (!collaborators.contains(user)) {
@@ -43,11 +39,13 @@ public abstract class Item implements Shareable {
         }
     }
 
+    // Mismo principio que addCollaborator: synchronized para evitar race conditions.
     public synchronized void removeCollaborator(User user) {
         collaborators.remove(user);
         user.getSharedItems().remove(this);
     }
 
+    // Imprime la lista de colaboradores del item.
     @Override
     public void showCollaborators() {
         System.out.println("Colaboradores de '" + title + "':");
@@ -60,13 +58,16 @@ public abstract class Item implements Shareable {
         }
     }
 
+    // El item esta compartido si tiene al menos un colaborador.
     @Override
     public boolean isShared() {
         return !collaborators.isEmpty();
     }
 
+    // Cada subclase (Task / Reminder) define como se muestra.
     public abstract void showDetails();
 
+    // Getters
     public int getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }

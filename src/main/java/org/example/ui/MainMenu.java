@@ -21,11 +21,17 @@ import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+// Menu principal de consola. Maneja el login flexible, la eleccion
+// de tipo de usuario, y todas las operaciones sobre Tasks/Reminders.
+// Es donde se dispara la concurrencia real cuando se cambia el estado
+// de una Task compartida.
 public class MainMenu {
     private final Scanner scanner = new Scanner(System.in);
     private final UserService userService;
     private final AuthService authService;
+    // Mapa thread-safe de todos los items del sistema (clave = id del item).
     private final ConcurrentHashMap<Integer, Item> items = new ConcurrentHashMap<>();
+    // Contadores atomicos: generan ids unicos aunque varios hilos compitan.
     private final AtomicInteger idCounter = new AtomicInteger(1);
     private final AtomicInteger nextUserId = new AtomicInteger(100);
     private User currentUser;
@@ -36,12 +42,14 @@ public class MainMenu {
         seedUsers();
     }
 
+    // Crea 3 usuarios de prueba para que el evaluador pueda probar rapido.
     private void seedUsers() {
         userService.register(new PremiumUser(1, "Angel", "angel@mail.com", "1234"));
         userService.register(new ClassicUser(2, "Maria", "maria@mail.com", "abcd", 5, 3));
         userService.register(new ClassicUser(3, "Pedro", "pedro@mail.com", "pass", 5, 3));
     }
 
+    // Punto de entrada: muestra bienvenida, hace login y arranca el bucle.
     public void start() {
         System.out.println("==========================================");
         System.out.println("    TODO COLLABORATIVE APP - Consola");
@@ -60,6 +68,8 @@ public class MainMenu {
         mainLoop();
     }
 
+    // Pide email + contrasena, despues pregunta el tipo de usuario
+    // (Classic o Premium) y crea/registra una instancia nueva.
     private boolean login() {
         System.out.print("Email: ");
         String email = scanner.nextLine().trim();
@@ -86,6 +96,8 @@ public class MainMenu {
         return true;
     }
 
+    // Pregunta si quiere ser Classic o Premium y construye el User.
+    // Si el email ya existe, reusa el id; si no, genera uno nuevo.
     private User createUserOfChosenType(String email, String password) {
         System.out.println("\nQue tipo de usuario quieres usar para esta sesion?");
         System.out.println("  1. ClassicUser  (limite de 5 items y 3 colaboradores)");
@@ -93,6 +105,7 @@ public class MainMenu {
         System.out.print("Opcion: ");
         String option = scanner.nextLine().trim();
 
+        // El nombre se deriva del email (parte antes del @, capitalizada).
         String name = email.contains("@")
                 ? email.substring(0, email.indexOf("@"))
                 : email;
@@ -100,7 +113,6 @@ public class MainMenu {
             name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
         }
 
-        // Si el email ya existe, reusar el id; si no, generar uno nuevo
         User existing = userService.findByEmail(email);
         int id = (existing != null) ? existing.getId() : nextUserId.getAndIncrement();
 
@@ -114,6 +126,7 @@ public class MainMenu {
         };
     }
 
+    // Bucle principal del menu: muestra opciones y despacha a los handlers.
     private void mainLoop() {
         while (true) {
             System.out.println("\n========== MENU PRINCIPAL ==========");
@@ -146,6 +159,7 @@ public class MainMenu {
         }
     }
 
+    // Crea una Task nueva con id atomico, la agrega al usuario y al mapa.
     private void createTask() {
         System.out.print("Titulo: ");
         String title = scanner.nextLine();
@@ -155,12 +169,15 @@ public class MainMenu {
 
         Task task = new Task(idCounter.getAndIncrement(), title, desc, priority, currentUser);
 
+        // addItem puede devolver false si es ClassicUser y supera el limite.
         if (currentUser.addItem(task)) {
             items.put(task.getId(), task);
             System.out.println("Task creada con ID " + task.getId());
         }
     }
 
+    // Crea un Reminder pidiendo tambien la estrategia de notificacion
+    // (esto es el patron Strategy en accion).
     private void createReminder() {
         System.out.print("Titulo: ");
         String title = scanner.nextLine();
@@ -172,6 +189,7 @@ public class MainMenu {
 
         Reminder reminder = new Reminder(idCounter.getAndIncrement(), title, desc, priority, currentUser, dateTime);
 
+        // STRATEGY: se elige una implementacion concreta en runtime.
         System.out.println("Estrategia de notificacion: 1=Email 2=Mensaje de texto");
         System.out.print("Opcion: ");
         NotificationStrategy strategy = switch (scanner.nextLine().trim()) {
@@ -186,6 +204,7 @@ public class MainMenu {
         }
     }
 
+    // Comparte un item con otro usuario (solo el owner puede compartir).
     private void shareItem() {
         System.out.print("ID del item: ");
         Item item = items.get(readInt());
@@ -201,6 +220,9 @@ public class MainMenu {
         currentUser.shareItem(item, colab);
     }
 
+    // Cambia el estado de una Task. Si la task esta compartida, dispara
+    // la concurrencia real: un hilo por colaborador + uno del usuario actual,
+    // todos compitiendo por el monitor que sincroniza modifyStatus.
     private void changeTaskStatus() {
         System.out.print("ID de la Task: ");
         Item item = items.get(readInt());
@@ -215,16 +237,16 @@ public class MainMenu {
             default -> Status.PENDING;
         };
 
-        // Si la task NO esta compartida: solo el usuario actual la modifica.
+        // Caso simple: la task no esta compartida, solo el currentUser modifica.
         if (!task.isShared()) {
             task.modifyStatus(s);
             return;
         }
 
-        // Si la task ESTA compartida: cada colaborador (mas el current user)
-        // intenta cambiar el estado al mismo tiempo, cada uno en su propio
-        // hilo. El synchronized en Task.modifyStatus garantiza que solo uno
-        // entra a la seccion critica a la vez. Concurrencia real, no demo.
+        // Caso interesante: la task ESTA compartida. Aca disparamos los hilos.
+        // Cada colaborador (mas el current user) intenta cambiar el estado al
+        // mismo tiempo en su propio hilo. synchronized en Task.modifyStatus
+        // garantiza que solo uno entra a la seccion critica a la vez.
         System.out.println("\n[Concurrencia] La task esta compartida con "
                 + task.getCollaborators().size() + " colaborador(es).");
         System.out.println("[Concurrencia] Cada colaborador intentara cambiar el");
@@ -232,25 +254,26 @@ public class MainMenu {
 
         List<Thread> hilos = new ArrayList<>();
 
-        // Hilo del usuario actual con el estado elegido
+        // 1. Hilo del usuario actual con el estado que eligio.
         Thread tMine = new Thread(new TaskWorker(task, s, currentUser),
                 "Hilo-" + currentUser.getName());
         hilos.add(tMine);
 
-        // Un hilo por cada colaborador con un estado "alternativo" rotando
+        // 2. Un hilo por cada colaborador, con un estado distinto rotando.
         Status[] otros = { Status.IN_PROGRESS, Status.COMPLETED, Status.PENDING, Status.CANCELED };
         int idx = 0;
         for (User colab : task.getCollaborators()) {
             Status alt = otros[idx % otros.length];
+            // Si el alternativo coincide con el del current user, agarra otro.
             if (alt == s) alt = otros[(idx + 1) % otros.length];
             hilos.add(new Thread(new TaskWorker(task, alt, colab),
                     "Hilo-" + colab.getName()));
             idx++;
         }
 
-        // Arrancar todos
+        // Arrancamos todos en paralelo.
         for (Thread t : hilos) t.start();
-        // Esperar a que terminen
+        // Esperamos a que TODOS terminen antes de imprimir el resultado final.
         try {
             for (Thread t : hilos) t.join();
         } catch (InterruptedException e) {
@@ -261,6 +284,8 @@ public class MainMenu {
                 + " hilos: " + task.getStatus());
     }
 
+    // Dispara la alerta de un Reminder (usa la NotificationStrategy
+    // configurada para entregar el mensaje).
     private void triggerReminder() {
         System.out.print("ID del Reminder: ");
         Item item = items.get(readInt());
@@ -268,6 +293,7 @@ public class MainMenu {
         r.notifyAlert();
     }
 
+    // Imprime todos los items del sistema con sus detalles y colaboradores.
     private void listAllItems() {
         List<Item> all = new ArrayList<>(items.values());
         if (all.isEmpty()) { System.out.println("No hay items."); return; }
@@ -278,6 +304,7 @@ public class MainMenu {
         }
     }
 
+    // Helper: pide la prioridad por consola.
     private Priority readPriority() {
         System.out.println("Prioridad: 1=HIGH 2=MEDIUM 3=LOW");
         System.out.print("Opcion: ");
@@ -288,6 +315,7 @@ public class MainMenu {
         };
     }
 
+    // Helper: lee un int de la consola, devuelve -1 si no es un numero.
     private int readInt() {
         try {
             return Integer.parseInt(scanner.nextLine().trim());

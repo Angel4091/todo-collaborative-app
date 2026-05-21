@@ -13,6 +13,7 @@ import org.example.patterns.MensajeTextoNotification;
 import org.example.patterns.NotificationStrategy;
 import org.example.service.AuthService;
 import org.example.service.UserService;
+import org.example.thread.TaskWorker;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -119,13 +120,12 @@ public class MainMenu {
             System.out.println("1. Crear Task");
             System.out.println("2. Crear Reminder          (Strategy)");
             System.out.println("3. Compartir item          (synchronized)");
-            System.out.println("4. Cambiar estado de Task  (synchronized)");
+            System.out.println("4. Cambiar estado de Task  (synchronized + hilos si la task esta compartida)");
             System.out.println("5. Disparar alerta Reminder");
             System.out.println("6. Ver mis items creados");
             System.out.println("7. Ver items compartidos conmigo");
             System.out.println("8. Ver todos los items del sistema");
             System.out.println("9. Cambiar de usuario");
-            System.out.println("D. Ejecutar DEMO automatico de concurrencia");
             System.out.println("0. Salir");
             System.out.print("Opcion: ");
             String option = scanner.nextLine().trim();
@@ -140,7 +140,6 @@ public class MainMenu {
                 case "7" -> currentUser.printSharedItems();
                 case "8" -> listAllItems();
                 case "9" -> { if (login()) continue; else return; }
-                case "D", "d" -> new DemoRunner(userService, items, idCounter).runDemo();
                 case "0" -> { System.out.println("Hasta luego!"); return; }
                 default -> System.out.println("Opcion invalida.");
             }
@@ -215,7 +214,51 @@ public class MainMenu {
             case "4" -> Status.CANCELED;
             default -> Status.PENDING;
         };
-        task.modifyStatus(s);
+
+        // Si la task NO esta compartida: solo el usuario actual la modifica.
+        if (!task.isShared()) {
+            task.modifyStatus(s);
+            return;
+        }
+
+        // Si la task ESTA compartida: cada colaborador (mas el current user)
+        // intenta cambiar el estado al mismo tiempo, cada uno en su propio
+        // hilo. El synchronized en Task.modifyStatus garantiza que solo uno
+        // entra a la seccion critica a la vez. Concurrencia real, no demo.
+        System.out.println("\n[Concurrencia] La task esta compartida con "
+                + task.getCollaborators().size() + " colaborador(es).");
+        System.out.println("[Concurrencia] Cada colaborador intentara cambiar el");
+        System.out.println("               estado en paralelo. synchronized los serializa.\n");
+
+        List<Thread> hilos = new ArrayList<>();
+
+        // Hilo del usuario actual con el estado elegido
+        Thread tMine = new Thread(new TaskWorker(task, s, currentUser),
+                "Hilo-" + currentUser.getName());
+        hilos.add(tMine);
+
+        // Un hilo por cada colaborador con un estado "alternativo" rotando
+        Status[] otros = { Status.IN_PROGRESS, Status.COMPLETED, Status.PENDING, Status.CANCELED };
+        int idx = 0;
+        for (User colab : task.getCollaborators()) {
+            Status alt = otros[idx % otros.length];
+            if (alt == s) alt = otros[(idx + 1) % otros.length];
+            hilos.add(new Thread(new TaskWorker(task, alt, colab),
+                    "Hilo-" + colab.getName()));
+            idx++;
+        }
+
+        // Arrancar todos
+        for (Thread t : hilos) t.start();
+        // Esperar a que terminen
+        try {
+            for (Thread t : hilos) t.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        System.out.println("\n[Concurrencia] Estado final tras los " + hilos.size()
+                + " hilos: " + task.getStatus());
     }
 
     private void triggerReminder() {

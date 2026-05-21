@@ -78,16 +78,17 @@ public class TaskWorker implements Runnable {
 }
 ```
 
-### Demo automático
+### Concurrencia real en el flujo normal
 
-Desde el menú principal se puede correr la opción **D** (Demo) que:
+La concurrencia se dispara **dentro del flujo natural** del menú, no en un demo aparte. Cuando el usuario elige la opción **4 (Cambiar estado de Task)** y la task está **compartida** con uno o más colaboradores, el sistema:
 
-1. Crea una `Task` compartida entre Angel, Maria y Pedro.
-2. Lanza dos `Thread` que ejecutan un `TaskWorker` cada uno (uno cambia el estado a `IN_PROGRESS`, el otro a `COMPLETED`) sobre la **misma** instancia.
-3. Espera a ambos con `join()`.
-4. Imprime el estado final.
+1. Genera un `TaskWorker` por **cada colaborador** y otro por el **usuario actual**.
+2. Cada `TaskWorker` propone un estado distinto y se ejecuta en su propio `Thread`.
+3. Todos los hilos arrancan **en paralelo** (`Thread.start()`) y compiten por el monitor de la `Task`.
+4. `synchronized` en `Task.modifyStatus()` los **serializa**: solo uno entra a la sección crítica a la vez.
+5. El sistema espera a todos con `Thread.join()` y muestra el estado final.
 
-Como `modifyStatus` es `synchronized`, los hilos se serializan en la sección crítica y nunca dejan el objeto en un estado inconsistente.
+Si la task **no está compartida**, simplemente se cambia el estado sin hilos extras (no hay race condition que prevenir).
 
 ---
 
@@ -121,31 +122,32 @@ Usuarios de prueba precargados:
 | maria@mail.com | abcd | ClassicUser (limit 5 tasks, 3 colab) |
 | pedro@mail.com | pass | ClassicUser (limit 5 tasks, 3 colab) |
 
-Una vez dentro, opción **D** para correr el demo automático de concurrencia.
+### Cómo probar la concurrencia paso a paso
 
-### Output esperado del demo
+1. Login (cualquier email/contraseña, elegí Premium).
+2. Opción **1**: crear una Task (ej: "Sprint Review").
+3. Opción **3**: compartir la Task con `maria@mail.com`.
+4. Opción **3** otra vez: compartir con `pedro@mail.com`.
+5. Opción **4**: cambiar el estado. Como la Task tiene 2 colaboradores, automáticamente se lanzan 3 hilos en paralelo.
+
+### Output esperado
 
 ```
-========== DEMO CONCURRENCIA ==========
-[Item Sprint Review] Maria agregado como colaborador.
-[Item Sprint Review] Pedro agregado como colaborador.
+[Concurrencia] La task esta compartida con 2 colaborador(es).
+[Concurrencia] Cada colaborador intentara cambiar el
+               estado en paralelo. synchronized los serializa.
 
->>> Maria y Pedro intentan cambiar el estado concurrentemente:
-    (synchronized en modifyStatus garantiza que solo
-     un hilo a la vez modifique la task compartida)
 [Hilo-Maria] Maria intenta cambiar 'Sprint Review' a IN_PROGRESS
-[Hilo-Pedro] Pedro intenta cambiar 'Sprint Review' a COMPLETED
+[Hilo-Pedro] Pedro intenta cambiar 'Sprint Review' a PENDING
+[Hilo-Angel] Angel intenta cambiar 'Sprint Review' a COMPLETED
 [Hilo-Maria] Task 'Sprint Review': PENDING -> IN_PROGRESS
-[Hilo-Pedro] Task 'Sprint Review': IN_PROGRESS -> COMPLETED
+[Hilo-Pedro] Task 'Sprint Review': IN_PROGRESS -> PENDING
+[Hilo-Angel] Task 'Sprint Review': PENDING -> COMPLETED
 
->>> Estado final de la Task:
-=== TASK ===
-Estado     : COMPLETED
-...
-========== FIN DEMO ==========
+[Concurrencia] Estado final tras los 3 hilos: COMPLETED
 ```
 
-El orden de los hilos puede variar entre ejecuciones (eso es lo esperado en concurrencia). Lo importante es que **siempre** hay una transición ordenada entre estados y nunca queda en un estado inconsistente — eso lo garantiza `synchronized` en `modifyStatus`.
+El orden de los hilos puede variar entre ejecuciones (eso es lo esperado en concurrencia). Lo importante es que **siempre** hay una transición ordenada entre estados y nunca queda en un estado inconsistente — eso lo garantiza `synchronized` en `Task.modifyStatus()`.
 
 ---
 

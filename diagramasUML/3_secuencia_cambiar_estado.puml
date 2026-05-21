@@ -1,7 +1,7 @@
 @startuml SecuenciaCambiarEstado
 title Diagrama de Secuencia - Cambiar estado de Task con concurrencia
 
-participant ":DemoRunner" as demo
+participant ":MainMenu" as demo
 participant "task:Task" as task
 participant "hiloA :\nTaskWorker" as hiloA
 participant "hiloB :\nTaskWorker" as hiloB

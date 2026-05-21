@@ -122,73 +122,6 @@ class TaskWorker implements Runnable {
 }
 
 ' ============================================
-' CAPA DE SERVICIO
-' ============================================
-class UserService {
-  -userDAO: UserDAO
-  +findByEmail(email: String): User
-  +getAllUsers(): List<User>
-  +register(user: User): void
-}
-
-class AuthService {
-  -userService: UserService
-  +login(email: String, password: String): User
-}
-
-' ============================================
-' CAPA DE PERSISTENCIA
-' ============================================
-class UserDAO {
-  -{static} usersByEmail: ConcurrentHashMap<String, User>
-  +save(user: User): void
-  +findByEmail(email: String): User
-  +findAll(): List<User>
-  +delete(email: String): void
-}
-
-class ItemDAO {
-  -{static} items: ConcurrentHashMap<Integer, Item>
-  +save(item: Item): void
-  +findById(id: int): Item
-  +findAll(): List<Item>
-  +delete(id: int): void
-}
-
-' ============================================
-' CAPA DE UI / DEMO
-' ============================================
-class MainMenu {
-  -scanner: Scanner
-  -userService: UserService
-  -authService: AuthService
-  -items: ConcurrentHashMap<Integer, Item>
-  -idCounter: AtomicInteger
-  -nextUserId: AtomicInteger
-  -currentUser: User
-  +start(): void
-  -login(): boolean
-  -createUserOfChosenType(email: String, password: String): User
-  -mainLoop(): void
-  -createTask(): void
-  -createReminder(): void
-  -shareItem(): void
-  -changeTaskStatus(): void
-  -triggerReminder(): void
-}
-
-class DemoRunner {
-  -userService: UserService
-  -items: ConcurrentHashMap<Integer, Item>
-  -idCounter: AtomicInteger
-  +runDemo(): void
-}
-
-class Main {
-  +{static} main(args: String[]): void
-}
-
-' ============================================
 ' RELACIONES
 ' ============================================
 User "1" o-- "0..*" Item : posee >
@@ -197,17 +130,6 @@ Task "1" *-- "1" Status
 Reminder "1" o-- "1" NotificationStrategy : usa >
 TaskWorker ..> Task : modifica\nconcurrentemente >
 TaskWorker ..> User : representa >
-
-AuthService --> UserService : usa >
-UserService --> UserDAO : usa >
-MainMenu --> AuthService
-MainMenu --> UserService
-MainMenu --> DemoRunner : lanza demo >
-MainMenu ..> Task : crea >
-MainMenu ..> Reminder : crea >
-DemoRunner ..> Task : crea y comparte >
-DemoRunner ..> TaskWorker : lanza hilos >
-Main --> MainMenu : arranca >
 
 ' ============================================
 ' NOTAS
@@ -247,14 +169,6 @@ note right of TaskWorker
   .start() para simular varios
   usuarios actuando en paralelo
   sobre la misma Task.
-end note
-
-note bottom of MainMenu
-  CAPA UI: maneja el menu de consola,
-  el login flexible (cualquier email/
-  password) y la eleccion de tipo de
-  usuario (Classic vs Premium) que
-  demuestra polimorfismo en runtime.
 end note
 
 @enduml

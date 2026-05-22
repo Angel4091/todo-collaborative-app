@@ -1,78 +1,53 @@
 @startuml SecuenciaCambiarEstado
+title Secuencia - Cambiar estado de Task con concurrencia
 
 skinparam noteBackgroundColor #FFF2CC
 skinparam noteBorderColor #D6B656
 
-actor "Angel\n(owner)" as Angel
-actor "Maria\n(colaboradora)" as Maria
-actor "Pedro\n(colaborador)" as Pedro
+actor "Usuario" as U
+participant ":MainMenu" as menu
 participant "task:Task" as task
+participant ":TaskWorker" as worker
 
-note left of Angel #FFF2CC
-  Diagrama de
-  Secuencia
-end note
+U -> menu : cambiarEstado(task)
+activate menu
 
-== 1. Crear Task ==
-
-Angel -> task : new Task("Sprint Review", HIGH, Angel)
+menu -> task : crear y compartir con Maria y Pedro
 activate task
-note right of task
-  Task creada con Angel como
-  owner. Estado inicial: PENDING.
-end note
-task --> Angel : task creada (id=1)
+task --> menu : ok
 deactivate task
 
-== 2. Compartir Task con colaboradores ==
-
-Angel -> task : addCollaborator(Maria)
-activate task
-task --> Maria : agregada como colaboradora
-task --> Angel : ok
-deactivate task
-
-Angel -> task : addCollaborator(Pedro)
-activate task
-task --> Pedro : agregado como colaborador
-task --> Angel : ok
-deactivate task
-
-== 3. Cambiar estado concurrentemente ==
+menu -> worker : crear 2 hilos y start()
+activate worker
 
 par hilo Maria
-    Maria -> task : modifyStatus(IN_PROGRESS) <<synchronized>>
+    worker -> task : modifyStatus(IN_PROGRESS) <<synchronized>>
     activate task #LightGreen
     note right of task
       Maria adquiere el monitor.
-      Pedro quedara BLOCKED hasta
-      que se libere.
+      Pedro queda BLOCKED.
     end note
     task -> task : status = IN_PROGRESS
-    task --> Maria
+    task --> worker
     deactivate task
 else hilo Pedro
-    Pedro -> task : modifyStatus(COMPLETED) <<synchronized>>
-    note over Pedro #FFE6E6
-      Pedro queda en estado
-      BLOCKED esperando el
-      monitor de 'task'.
-    end note
+    worker -> task : modifyStatus(COMPLETED) <<synchronized>>
     activate task #LightBlue
     note right of task
       Maria libera el monitor;
-      el JVM despierta a Pedro
-      automaticamente.
+      Pedro entra automaticamente.
     end note
     task -> task : status = COMPLETED
-    task --> Pedro
+    task --> worker
     deactivate task
 end
 
-note over task
-  modifyStatus() es synchronized.
-  El JVM serializa los hilos via el
-  monitor del objeto. Sin retry manual.
-end note
+deactivate worker
+
+menu -> task : showDetails()
+task --> menu : estado final = COMPLETED
+
+menu --> U : Fin
+deactivate menu
 
 @enduml

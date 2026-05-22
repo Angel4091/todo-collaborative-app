@@ -12,13 +12,13 @@ import org.example.patterns.EmailNotification;
 import org.example.patterns.MensajeTextoNotification;
 import org.example.patterns.NotificationStrategy;
 import org.example.service.AuthService;
+import org.example.service.ItemService;
 import org.example.service.UserService;
 import org.example.thread.TaskWorker;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // Menu principal de consola. Maneja el login flexible, la eleccion
@@ -29,8 +29,9 @@ public class MainMenu {
     private final Scanner scanner = new Scanner(System.in);
     private final UserService userService;
     private final AuthService authService;
-    // Mapa thread-safe de todos los items del sistema (clave = id del item).
-    private final ConcurrentHashMap<Integer, Item> items = new ConcurrentHashMap<>();
+    // ItemService delega en ItemDAO para guardar/buscar items.
+    // Asi MainMenu no toca el storage directo (capa DAO encapsulada).
+    private final ItemService itemService;
     // Contadores atomicos: generan ids unicos aunque varios hilos compitan.
     private final AtomicInteger idCounter = new AtomicInteger(1);
     private final AtomicInteger nextUserId = new AtomicInteger(100);
@@ -39,6 +40,7 @@ public class MainMenu {
     public MainMenu() {
         this.userService = new UserService();
         this.authService = new AuthService(userService);
+        this.itemService = new ItemService();
         seedUsers();
     }
 
@@ -127,10 +129,10 @@ public class MainMenu {
         while (true) {
             System.out.println("\n========== MENU PRINCIPAL ==========");
             System.out.println("1. Crear Task");
-            System.out.println("2. Crear Reminder          (Strategy)");
-            System.out.println("3. Compartir item          (synchronized)");
-            System.out.println("4. Cambiar estado de Task  (synchronized + hilos si la task esta compartida)");
-            System.out.println("5. Disparar alerta Reminder");
+            System.out.println("2. Crear Reminder          ");
+            System.out.println("3. Compartir item          ");
+            System.out.println("4. Cambiar estado de Task  ");
+            System.out.println("5. Notificacion del Reminder");
             System.out.println("6. Ver mis items creados");
             System.out.println("7. Ver items compartidos conmigo");
             System.out.println("8. Ver todos los items del sistema");
@@ -187,7 +189,7 @@ public class MainMenu {
         Task task = new Task(idCounter.getAndIncrement(), title, desc, priority, currentUser, initialStatus);
 
         if (currentUser.addItem(task)) {
-            items.put(task.getId(), task);
+            itemService.save(task);
             System.out.println("Task creada con ID " + task.getId()
                     + " (estado inicial: " + task.getStatus() + ")");
         }
@@ -220,7 +222,7 @@ public class MainMenu {
         reminder.setNotificationStrategy(strategy);
 
         if (currentUser.addItem(reminder)) {
-            items.put(reminder.getId(), reminder);
+            itemService.save(reminder);
             System.out.println("Reminder creado con ID " + reminder.getId());
         }
     }
@@ -228,7 +230,7 @@ public class MainMenu {
     // Comparte un item con otro usuario (solo el owner puede compartir).
     private void shareItem() {
         System.out.print("ID del item: ");
-        Item item = items.get(readInt());
+        Item item = itemService.findById(readInt());
         if (item == null) { System.out.println("Item no encontrado."); return; }
         if (!item.getOwner().equals(currentUser)) {
             System.out.println("Solo el owner puede compartir.");
@@ -246,7 +248,7 @@ public class MainMenu {
     // todos compitiendo por el monitor que sincroniza modifyStatus.
     private void changeTaskStatus() {
         System.out.print("ID de la Task: ");
-        Item item = items.get(readInt());
+        Item item = itemService.findById(readInt());
         if (!(item instanceof Task task)) { System.out.println("No es una Task valida."); return; }
         System.out.println("Estado actual: " + task.getStatus());
         // readStatus exige 1/2/3/4 y vuelve a preguntar si la opcion es invalida.
@@ -303,14 +305,14 @@ public class MainMenu {
     // configurada para entregar el mensaje).
     private void triggerReminder() {
         System.out.print("ID del Reminder: ");
-        Item item = items.get(readInt());
+        Item item = itemService.findById(readInt());
         if (!(item instanceof Reminder r)) { System.out.println("No es un Reminder."); return; }
         r.notifyAlert();
     }
 
     // Imprime todos los items del sistema con sus detalles y colaboradores.
     private void listAllItems() {
-        List<Item> all = new ArrayList<>(items.values());
+        List<Item> all = itemService.findAll();
         if (all.isEmpty()) { System.out.println("No hay items."); return; }
         for (Item i : all) {
             i.showDetails();

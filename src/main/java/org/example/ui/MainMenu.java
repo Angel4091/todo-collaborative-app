@@ -148,7 +148,17 @@ public class MainMenu {
                 case "6" -> currentUser.printCreatedItems();
                 case "7" -> currentUser.printSharedItems();
                 case "8" -> listAllItems();
-                case "9" -> { if (login()) continue; else return; }
+                case "9" -> {
+                    // Cambiar de usuario. Si el login falla o se cancela
+                    // (email/contrasena vacios o tipo invalido), nos
+                    // quedamos con el usuario actual y volvemos al menu.
+                    // El programa SOLO se cierra con la opcion 0.
+                    if (!login()) {
+                        System.out.println("Cambio de usuario cancelado. Sigues como "
+                                + currentUser.getName() + " ("
+                                + currentUser.getClass().getSimpleName() + ").");
+                    }
+                }
                 case "0" -> { System.out.println("Hasta luego!"); return; }
                 default -> System.out.println("Opcion invalida.");
             }

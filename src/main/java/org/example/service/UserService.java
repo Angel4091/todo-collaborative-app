@@ -1,31 +1,54 @@
 package org.example.service;
 
-import org.example.dao.UserDAO;
 import org.example.model.User;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
-// Capa de servicio para usuarios. Es un wrapper sobre UserDAO
-// que el resto del codigo usa para buscar y registrar usuarios.
+/**
+ * Capa de servicio para usuarios. Mantiene un mapa thread-safe en
+ * memoria con los usuarios registrados, indexados por su email.
+ *
+ * <p>El resto del codigo (UI, AuthService) usa esta clase para
+ * buscar, registrar y listar usuarios sin acceder directamente al
+ * storage. Asi, si en el futuro se reemplaza el mapa en memoria por
+ * una base de datos, solo cambia esta clase.</p>
+ */
 public class UserService {
-    private final UserDAO userDAO;
 
-    public UserService() {
-        this.userDAO = new UserDAO();
-    }
+    /**
+     * Mapa thread-safe que contiene los usuarios del sistema.
+     * Clave: email del usuario. Valor: instancia de User.
+     */
+    private final ConcurrentHashMap<String, User> usersByEmail = new ConcurrentHashMap<>();
 
-    // Busca un usuario por su email. Devuelve null si no existe.
+    /**
+     * Busca un usuario por su email.
+     *
+     * @param email email del usuario a buscar
+     * @return el {@link User} encontrado, o {@code null} si no existe
+     */
     public User findByEmail(String email) {
-        return userDAO.findByEmail(email);
+        return usersByEmail.get(email);
     }
 
-    // Devuelve todos los usuarios registrados.
+    /**
+     * Devuelve una copia con todos los usuarios registrados.
+     *
+     * @return lista nueva con todos los usuarios (snapshot)
+     */
     public List<User> getAllUsers() {
-        return userDAO.findAll();
+        return new ArrayList<>(usersByEmail.values());
     }
 
-    // Registra (o sobreescribe) un usuario en el sistema.
+    /**
+     * Registra un usuario nuevo o reemplaza uno existente.
+     * Si ya existe un usuario con el mismo email, se sobreescribe.
+     *
+     * @param user usuario a registrar
+     */
     public void register(User user) {
-        userDAO.save(user);
+        usersByEmail.put(user.getEmail(), user);
     }
 }

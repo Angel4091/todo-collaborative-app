@@ -54,11 +54,7 @@ public class MainMenu {
         System.out.println("==========================================");
         System.out.println("    TODO COLLABORATIVE APP - Consola");
         System.out.println("==========================================");
-        System.out.println("Podes ingresar cualquier email y contrasena,");
-        System.out.println("o usar uno de los usuarios pre-cargados:");
-        System.out.println("  - angel@mail.com  (Angel)");
-        System.out.println("  - maria@mail.com  (Maria)");
-        System.out.println("  - pedro@mail.com  (Pedro)");
+        System.out.println("Podes ingresar email y contrasena,");
         System.out.println();
 
         if (!login()) {

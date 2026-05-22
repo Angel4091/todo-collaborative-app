@@ -1,39 +1,53 @@
 @startuml SecuenciaCambiarEstado
-title Diagrama de Secuencia - Cambiar estado de Task con concurrencia
 
-participant ":MainMenu" as demo
+skinparam noteBackgroundColor #FFF2CC
+skinparam noteBorderColor #D6B656
+
+actor Maria
+actor Pedro
 participant "task:Task" as task
-participant "hiloA :\nTaskWorker" as hiloA
-participant "hiloB :\nTaskWorker" as hiloB
 
-demo -> hiloA : startThread(task, IN_PROGRESS)
-demo -> hiloB : startThread(task, COMPLETED)
+note left of Maria #FFF2CC
+  Diagrama de
+  Secuencia
+end note
 
-par
-  hiloA -> task : modifyStatus(IN_PROGRESS)
+Maria -> task : solicitarCambio(IN_PROGRESS)
+task --> Maria : aceptado
+Pedro -> task : solicitarCambio(COMPLETED)
+task --> Pedro : aceptado
+
+Maria -> Maria : prepararHilo()
+Pedro -> Pedro : prepararHilo()
+
+par hilo Maria
+  Maria -> task : modifyStatus(IN_PROGRESS)
   activate task
   task -> task : synchronized(this)
   task -> task : status = IN_PROGRESS
   task -> task : log "PENDING -> IN_PROGRESS"
-  task --> hiloA : ok
+  task --> Maria : ok
   deactivate task
-end
-
-loop Repetir hasta que el monitor este libre
-  hiloB -> task : modifyStatus(COMPLETED)
-  task --> hiloB : monitor ocupado
-end
-
-alt Monitor libre
-  hiloB -> task : modifyStatus(COMPLETED)
+else hilo Pedro
+  loop [monitor ocupado]
+    Pedro -> task : intentar modifyStatus
+    task --> Pedro : esperar
+  end
+  Pedro -> task : modifyStatus(COMPLETED)
   activate task
   task -> task : synchronized(this)
   task -> task : status = COMPLETED
   task -> task : log "IN_PROGRESS -> COMPLETED"
-  task --> hiloB : ok
+  task --> Pedro : ok
   deactivate task
-else Monitor ocupado
-  hiloB -> hiloB : wait()
 end
+
+note right of task
+  synchronized en Task.modifyStatus
+  garantiza que solo un hilo entre a
+  la seccion critica a la vez. El
+  otro espera (loop) y entra cuando
+  se libera el monitor.
+end note
 
 @enduml

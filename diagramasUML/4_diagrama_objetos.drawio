@@ -1,0 +1,124 @@
+<mxfile host="app.diagrams.net" version="22.0.0">
+  <diagram name="Objetos" id="objetos-1">
+    <mxGraphModel dx="1500" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Diagrama de Objetos - Snapshot del sistema (despues de crear una Task compartida y un Reminder)" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="60" y="10" width="1080" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="angel" value="&lt;b&gt;&lt;u&gt;angel : PremiumUser&lt;/u&gt;&lt;/b&gt;&lt;hr&gt;&lt;p style='text-align:left;margin:4px 8px;'&gt;id = 1&lt;br&gt;name = &quot;Angel&quot;&lt;br&gt;email = &quot;angel@mail.com&quot;&lt;/p&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="80" y="200" width="220" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="maria" value="&lt;b&gt;&lt;u&gt;maria : ClassicUser&lt;/u&gt;&lt;/b&gt;&lt;hr&gt;&lt;p style='text-align:left;margin:4px 8px;'&gt;id = 2&lt;br&gt;name = &quot;Maria&quot;&lt;br&gt;email = &quot;maria@mail.com&quot;&lt;br&gt;limitTask = 5&lt;br&gt;maxCollaborators = 3&lt;/p&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="80" y="640" width="220" height="150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pedro" value="&lt;b&gt;&lt;u&gt;pedro : ClassicUser&lt;/u&gt;&lt;/b&gt;&lt;hr&gt;&lt;p style='text-align:left;margin:4px 8px;'&gt;id = 3&lt;br&gt;name = &quot;Pedro&quot;&lt;br&gt;email = &quot;pedro@mail.com&quot;&lt;br&gt;limitTask = 5&lt;br&gt;maxCollaborators = 3&lt;/p&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="400" y="640" width="220" height="150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="t1" value="&lt;b&gt;&lt;u&gt;t1 : Task&lt;/u&gt;&lt;/b&gt;&lt;hr&gt;&lt;p style='text-align:left;margin:4px 8px;'&gt;id = 1&lt;br&gt;title = &quot;Sprint Review&quot;&lt;br&gt;description = &quot;Demo del proyecto&quot;&lt;br&gt;priority = HIGH&lt;br&gt;status = IN_PROGRESS&lt;/p&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="400" y="380" width="240" height="150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r1" value="&lt;b&gt;&lt;u&gt;r1 : Reminder&lt;/u&gt;&lt;/b&gt;&lt;hr&gt;&lt;p style='text-align:left;margin:4px 8px;'&gt;id = 2&lt;br&gt;title = &quot;Reunion con cliente&quot;&lt;br&gt;description = &quot;Mostrar el demo&quot;&lt;br&gt;priority = MEDIUM&lt;br&gt;dateTime = &quot;2026-05-20 14:00&quot;&lt;/p&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;verticalAlign=top" vertex="1" parent="1">
+          <mxGeometry x="700" y="60" width="260" height="150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="email" value="&lt;b&gt;&lt;u&gt;emailStrat : EmailNotification&lt;/u&gt;&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;verticalAlign=middle" vertex="1" parent="1">
+          <mxGeometry x="940" y="270" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_t1_angel" value="owner" style="endArrow=open;html=1;strokeColor=#000000;startSize=8;endSize=10" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="420" as="sourcePoint" />
+            <mxPoint x="300" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_angel_t1" value="createdItems" style="endArrow=open;html=1;strokeColor=#000000;startSize=8;endSize=10" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="220" y="310" as="sourcePoint" />
+            <mxPoint x="420" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_r1_angel" value="owner" style="endArrow=open;html=1;strokeColor=#000000;startSize=8;endSize=10" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="700" y="180" as="sourcePoint" />
+            <mxPoint x="300" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_angel_r1" value="createdItems" style="endArrow=open;html=1;strokeColor=#000000;startSize=8;endSize=10" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="240" as="sourcePoint" />
+            <mxPoint x="700" y="100" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_t1_maria" value="collaborators" style="endArrow=open;html=1;strokeColor=#000000;startSize=8;endSize=10" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="450" y="530" as="sourcePoint" />
+            <mxPoint x="180" y="640" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_t1_pedro" value="collaborators" style="endArrow=open;html=1;strokeColor=#000000;startSize=8;endSize=10" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="520" y="530" as="sourcePoint" />
+            <mxPoint x="510" y="640" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_maria_t1" value="sharedItems" style="endArrow=open;html=1;strokeColor=#000000;startSize=8;endSize=10" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="240" y="640" as="sourcePoint" />
+            <mxPoint x="430" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_pedro_t1" value="sharedItems" style="endArrow=open;html=1;strokeColor=#000000;startSize=8;endSize=10" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="570" y="640" as="sourcePoint" />
+            <mxPoint x="540" y="540" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_r1_email" value="notificationStrategy" style="endArrow=open;html=1;strokeColor=#000000;startSize=8;endSize=10" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="940" y="190" as="sourcePoint" />
+            <mxPoint x="1000" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="note_t1" value="Snapshot tomado despues de que Maria y Pedro intentaran cambiar el estado en paralelo. Maria entro primero al monitor synchronized; el estado quedo finalmente en IN_PROGRESS." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#FFF2CC;strokeColor=#D6B656;align=left;verticalAlign=middle;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="700" y="400" width="260" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_note_t1" style="endArrow=none;html=1;strokeColor=#666666;dashed=1" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="700" y="450" as="sourcePoint" />
+            <mxPoint x="640" y="450" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="note_email" value="PATRON STRATEGY en runtime: r1 puede cambiar su estrategia a MensajeTextoNotification sin modificar la clase Reminder." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#FFF2CC;strokeColor=#D6B656;align=left;verticalAlign=middle;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="940" y="370" width="240" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_note_email" style="endArrow=none;html=1;strokeColor=#666666;dashed=1" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1040" y="370" as="sourcePoint" />
+            <mxPoint x="1040" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

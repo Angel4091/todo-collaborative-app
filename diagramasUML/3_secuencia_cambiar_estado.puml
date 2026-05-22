@@ -12,42 +12,51 @@ note left of Maria #FFF2CC
   Secuencia
 end note
 
-Maria -> task : solicitarCambio(IN_PROGRESS)
-task --> Maria : aceptado
-Pedro -> task : solicitarCambio(COMPLETED)
-task --> Pedro : aceptado
+== Creacion de hilos ==
 
-Maria -> Maria : prepararHilo()
-Pedro -> Pedro : prepararHilo()
+Maria -> Maria : new Thread(workerMaria).start()
+Pedro -> Pedro : new Thread(workerPedro).start()
+
+== Acceso concurrente al metodo synchronized ==
 
 par hilo Maria
-  Maria -> task : modifyStatus(IN_PROGRESS)
-  activate task
-  task -> task : synchronized(this)
-  task -> task : status = IN_PROGRESS
-  task -> task : log "PENDING -> IN_PROGRESS"
-  task --> Maria : ok
-  deactivate task
+    Maria -> task : modifyStatus(IN_PROGRESS) <<synchronized>>
+    activate task #LightGreen
+    note right of task
+      Maria adquiere el monitor
+      del objeto 'task'. Cualquier
+      otro hilo que llame a un
+      metodo synchronized de 'task'
+      quedara BLOCKED por el JVM.
+    end note
+    task -> task : status = IN_PROGRESS
+    task --> Maria
+    deactivate task
 else hilo Pedro
-  loop [monitor ocupado]
-    Pedro -> task : intentar modifyStatus
-    task --> Pedro : esperar
-  end
-  Pedro -> task : modifyStatus(COMPLETED)
-  activate task
-  task -> task : synchronized(this)
-  task -> task : status = COMPLETED
-  task -> task : log "IN_PROGRESS -> COMPLETED"
-  task --> Pedro : ok
-  deactivate task
+    Pedro -> task : modifyStatus(COMPLETED) <<synchronized>>
+    note over Pedro #FFE6E6
+      Pedro queda en estado
+      BLOCKED esperando el
+      monitor de 'task'.
+      (No hay retry manual.)
+    end note
+    activate task #LightBlue
+    note right of task
+      Maria libera el monitor;
+      el JVM despierta a Pedro
+      automaticamente.
+    end note
+    task -> task : status = COMPLETED
+    task --> Pedro
+    deactivate task
 end
 
-note right of task
-  synchronized en Task.modifyStatus
-  garantiza que solo un hilo entre a
-  la seccion critica a la vez. El
-  otro espera (loop) y entra cuando
-  se libera el monitor.
+note over task
+  modifyStatus() es un metodo synchronized.
+  El monitor del objeto serializa los hilos
+  competidores. El JVM se encarga del bloqueo
+  (BLOCKED) y del despertar; el codigo no
+  implementa ningun loop de reintento.
 end note
 
 @enduml

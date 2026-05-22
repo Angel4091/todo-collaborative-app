@@ -3,31 +3,50 @@
 skinparam noteBackgroundColor #FFF2CC
 skinparam noteBorderColor #D6B656
 
-actor Maria
-actor Pedro
+actor "Angel\n(owner)" as Angel
+actor "Maria\n(colaboradora)" as Maria
+actor "Pedro\n(colaborador)" as Pedro
 participant "task:Task" as task
 
-note left of Maria #FFF2CC
+note left of Angel #FFF2CC
   Diagrama de
   Secuencia
 end note
 
-== Creacion de hilos ==
+== 1. Crear Task ==
 
-Maria -> Maria : new Thread(workerMaria).start()
-Pedro -> Pedro : new Thread(workerPedro).start()
+Angel -> task : new Task("Sprint Review", HIGH, Angel)
+activate task
+note right of task
+  Task creada con Angel como
+  owner. Estado inicial: PENDING.
+end note
+task --> Angel : task creada (id=1)
+deactivate task
 
-== Acceso concurrente al metodo synchronized ==
+== 2. Compartir Task con colaboradores ==
+
+Angel -> task : addCollaborator(Maria)
+activate task
+task --> Maria : agregada como colaboradora
+task --> Angel : ok
+deactivate task
+
+Angel -> task : addCollaborator(Pedro)
+activate task
+task --> Pedro : agregado como colaborador
+task --> Angel : ok
+deactivate task
+
+== 3. Cambiar estado concurrentemente ==
 
 par hilo Maria
     Maria -> task : modifyStatus(IN_PROGRESS) <<synchronized>>
     activate task #LightGreen
     note right of task
-      Maria adquiere el monitor
-      del objeto 'task'. Cualquier
-      otro hilo que llame a un
-      metodo synchronized de 'task'
-      quedara BLOCKED por el JVM.
+      Maria adquiere el monitor.
+      Pedro quedara BLOCKED hasta
+      que se libere.
     end note
     task -> task : status = IN_PROGRESS
     task --> Maria
@@ -38,7 +57,6 @@ else hilo Pedro
       Pedro queda en estado
       BLOCKED esperando el
       monitor de 'task'.
-      (No hay retry manual.)
     end note
     activate task #LightBlue
     note right of task
@@ -52,11 +70,9 @@ else hilo Pedro
 end
 
 note over task
-  modifyStatus() es un metodo synchronized.
-  El monitor del objeto serializa los hilos
-  competidores. El JVM se encarga del bloqueo
-  (BLOCKED) y del despertar; el codigo no
-  implementa ningun loop de reintento.
+  modifyStatus() es synchronized.
+  El JVM serializa los hilos via el
+  monitor del objeto. Sin retry manual.
 end note
 
 @enduml

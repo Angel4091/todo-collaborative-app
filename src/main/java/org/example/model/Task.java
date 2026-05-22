@@ -9,10 +9,17 @@ import org.example.catalog.Status;
 public class Task extends Item {
     private Status status;
 
-    // Toda Task nueva arranca en PENDING.
+    // Constructor por defecto: arranca en PENDING.
     public Task(int id, String title, String description, Priority priority, User owner) {
+        this(id, title, description, priority, owner, Status.PENDING);
+    }
+
+    // Constructor con estado inicial elegido por el usuario.
+    // Permite crear una Task que ya arranca en IN_PROGRESS si la
+    // persona ya empezo a trabajar antes de registrarla en el sistema.
+    public Task(int id, String title, String description, Priority priority, User owner, Status status) {
         super(id, title, description, priority, owner);
-        this.status = Status.PENDING;
+        this.status = status;
     }
 
     @Override

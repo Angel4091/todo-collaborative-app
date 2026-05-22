@@ -165,26 +165,45 @@ public class MainMenu {
         }
     }
 
-    // Crea una Task nueva con id atomico, la agrega al usuario y al mapa.
+    // Crea una Task nueva. Chequea el limite ANTES de pedir datos
+    // (asi el ClassicUser que ya esta tope no pierde tiempo escribiendo).
+    // Tambien deja elegir el estado inicial (no siempre arranca en PENDING).
     private void createTask() {
+        // Pre-chequeo: si el usuario no puede crear mas items, salir ya.
+        if (!currentUser.canAddItem()) {
+            System.out.println("[Limite alcanzado] No puedes crear mas items. "
+                    + "Tu cuenta (" + currentUser.getClass().getSimpleName()
+                    + ") ya llego al tope.");
+            return;
+        }
+
         System.out.print("Titulo: ");
         String title = scanner.nextLine();
         System.out.print("Descripcion: ");
         String desc = scanner.nextLine();
         Priority priority = readPriority();
+        Status initialStatus = readInitialStatus();
 
-        Task task = new Task(idCounter.getAndIncrement(), title, desc, priority, currentUser);
+        Task task = new Task(idCounter.getAndIncrement(), title, desc, priority, currentUser, initialStatus);
 
-        // addItem puede devolver false si es ClassicUser y supera el limite.
         if (currentUser.addItem(task)) {
             items.put(task.getId(), task);
-            System.out.println("Task creada con ID " + task.getId());
+            System.out.println("Task creada con ID " + task.getId()
+                    + " (estado inicial: " + task.getStatus() + ")");
         }
     }
 
     // Crea un Reminder pidiendo tambien la estrategia de notificacion
-    // (esto es el patron Strategy en accion).
+    // (esto es el patron Strategy en accion). Chequea el limite antes.
     private void createReminder() {
+        // Pre-chequeo del limite (igual que createTask).
+        if (!currentUser.canAddItem()) {
+            System.out.println("[Limite alcanzado] No puedes crear mas items. "
+                    + "Tu cuenta (" + currentUser.getClass().getSimpleName()
+                    + ") ya llego al tope.");
+            return;
+        }
+
         System.out.print("Titulo: ");
         String title = scanner.nextLine();
         System.out.print("Descripcion: ");
@@ -195,13 +214,9 @@ public class MainMenu {
 
         Reminder reminder = new Reminder(idCounter.getAndIncrement(), title, desc, priority, currentUser, dateTime);
 
-        // STRATEGY: se elige una implementacion concreta en runtime.
-        System.out.println("Estrategia de notificacion: 1=Email 2=Mensaje de texto");
-        System.out.print("Opcion: ");
-        NotificationStrategy strategy = switch (scanner.nextLine().trim()) {
-            case "2" -> new MensajeTextoNotification();
-            default -> new EmailNotification();
-        };
+        // STRATEGY: se elige una implementacion concreta en runtime,
+        // con validacion: no acepta cualquier cosa, exige 1 o 2.
+        NotificationStrategy strategy = readNotificationStrategy();
         reminder.setNotificationStrategy(strategy);
 
         if (currentUser.addItem(reminder)) {
@@ -234,14 +249,8 @@ public class MainMenu {
         Item item = items.get(readInt());
         if (!(item instanceof Task task)) { System.out.println("No es una Task valida."); return; }
         System.out.println("Estado actual: " + task.getStatus());
-        System.out.println("Nuevo: 1=PENDING 2=IN_PROGRESS 3=COMPLETED 4=CANCELED");
-        System.out.print("Opcion: ");
-        Status s = switch (scanner.nextLine().trim()) {
-            case "2" -> Status.IN_PROGRESS;
-            case "3" -> Status.COMPLETED;
-            case "4" -> Status.CANCELED;
-            default -> Status.PENDING;
-        };
+        // readStatus exige 1/2/3/4 y vuelve a preguntar si la opcion es invalida.
+        Status s = readStatus();
 
         // Caso simple: la task no esta compartida, solo el currentUser modifica.
         if (!task.isShared()) {
@@ -310,15 +319,67 @@ public class MainMenu {
         }
     }
 
-    // Helper: pide la prioridad por consola.
+    // Helper: pide la prioridad por consola. Si el usuario escribe
+    // algo distinto de 1/2/3, le avisa y vuelve a preguntar.
     private Priority readPriority() {
-        System.out.println("Prioridad: 1=HIGH 2=MEDIUM 3=LOW");
-        System.out.print("Opcion: ");
-        return switch (scanner.nextLine().trim()) {
-            case "1" -> Priority.HIGH;
-            case "3" -> Priority.LOW;
-            default -> Priority.MEDIUM;
-        };
+        while (true) {
+            System.out.println("Prioridad: 1=HIGH 2=MEDIUM 3=LOW");
+            System.out.print("Opcion: ");
+            switch (scanner.nextLine().trim()) {
+                case "1": return Priority.HIGH;
+                case "2": return Priority.MEDIUM;
+                case "3": return Priority.LOW;
+                default: System.out.println("Opcion invalida. Debes elegir 1, 2 o 3.\n");
+            }
+        }
+    }
+
+    // Helper: pide un Status valido (1/2/3/4). Si el usuario escribe
+    // algo distinto, le avisa y vuelve a preguntar.
+    private Status readStatus() {
+        while (true) {
+            System.out.println("Estado: 1=PENDING 2=IN_PROGRESS 3=COMPLETED 4=CANCELED");
+            System.out.print("Opcion: ");
+            switch (scanner.nextLine().trim()) {
+                case "1": return Status.PENDING;
+                case "2": return Status.IN_PROGRESS;
+                case "3": return Status.COMPLETED;
+                case "4": return Status.CANCELED;
+                default: System.out.println("Opcion invalida. Debes elegir 1, 2, 3 o 4.\n");
+            }
+        }
+    }
+
+    // Helper: pide el ESTADO INICIAL al crear una Task.
+    // Si el usuario aprieta Enter sin escribir, asume PENDING.
+    private Status readInitialStatus() {
+        while (true) {
+            System.out.println("Estado inicial: 1=PENDING 2=IN_PROGRESS 3=COMPLETED 4=CANCELED");
+            System.out.print("Opcion (Enter = PENDING): ");
+            String opt = scanner.nextLine().trim();
+            if (opt.isEmpty()) return Status.PENDING;
+            switch (opt) {
+                case "1": return Status.PENDING;
+                case "2": return Status.IN_PROGRESS;
+                case "3": return Status.COMPLETED;
+                case "4": return Status.CANCELED;
+                default: System.out.println("Opcion invalida. Debes elegir 1, 2, 3 o 4 (o Enter).\n");
+            }
+        }
+    }
+
+    // Helper: pide la estrategia de notificacion para un Reminder.
+    // Solo acepta 1 o 2; con cualquier otra cosa avisa y vuelve a preguntar.
+    private NotificationStrategy readNotificationStrategy() {
+        while (true) {
+            System.out.println("Estrategia de notificacion: 1=Email 2=Mensaje de texto");
+            System.out.print("Opcion: ");
+            switch (scanner.nextLine().trim()) {
+                case "1": return new EmailNotification();
+                case "2": return new MensajeTextoNotification();
+                default: System.out.println("Opcion invalida. Debes elegir 1 o 2.\n");
+            }
+        }
     }
 
     // Helper: lee un int de la consola, devuelve -1 si no es un numero.

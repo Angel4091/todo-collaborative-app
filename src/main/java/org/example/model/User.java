@@ -38,6 +38,14 @@ public class User implements Authenticable {
         return true;
     }
 
+    // Devuelve true si el usuario PUEDE crear otro item.
+    // Por defecto si (PremiumUser). ClassicUser lo sobreescribe para
+    // chequear contra su limite. Lo usa la UI para avisar al usuario
+    // ANTES de pedirle todos los datos.
+    public boolean canAddItem() {
+        return true;
+    }
+
     // Comparte un item con otro usuario.
     public boolean shareItem(Item item, User user) {
         item.addCollaborator(user);

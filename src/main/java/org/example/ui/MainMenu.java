@@ -11,14 +11,12 @@ import org.example.model.User;
 import org.example.patterns.EmailNotification;
 import org.example.patterns.MensajeTextoNotification;
 import org.example.patterns.NotificationStrategy;
-import org.example.service.AuthService;
-import org.example.service.ItemService;
-import org.example.service.UserService;
 import org.example.thread.TaskWorker;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -28,20 +26,27 @@ import java.util.concurrent.atomic.AtomicInteger;
  * (Classic / Premium), y todas las operaciones sobre Tasks y
  * Reminders. Es donde se dispara la concurrencia real cuando se
  * cambia el estado de una Task compartida.</p>
+ *
+ * <p>El storage de usuarios y de items se mantiene aca mismo
+ * usando {@link ConcurrentHashMap} (thread-safe), sin pasar por
+ * una capa de servicios extra.</p>
  */
 public class MainMenu {
 
     /** Scanner unico para leer de la consola. */
     private final Scanner scanner = new Scanner(System.in);
 
-    /** Servicio de usuarios (alta, busqueda). */
-    private final UserService userService;
+    /**
+     * Mapa thread-safe de usuarios registrados (clave: email).
+     * Soporta acceso concurrente desde varios hilos sin trabarse.
+     */
+    private final ConcurrentHashMap<String, User> usersByEmail = new ConcurrentHashMap<>();
 
-    /** Servicio de autenticacion (login). */
-    private final AuthService authService;
-
-    /** Servicio de items: guarda, busca y lista Tasks y Reminders. */
-    private final ItemService itemService;
+    /**
+     * Mapa thread-safe de items del sistema (clave: id del item).
+     * Contiene Tasks y Reminders.
+     */
+    private final ConcurrentHashMap<Integer, Item> items = new ConcurrentHashMap<>();
 
     /** Generador atomico de ids para items (thread-safe). */
     private final AtomicInteger idCounter = new AtomicInteger(1);
@@ -53,29 +58,35 @@ public class MainMenu {
     private User currentUser;
 
     /**
-     * Construye el MainMenu: crea los servicios y carga usuarios
-     * de prueba para que el evaluador pueda probar rapido.
+     * Construye el MainMenu y carga usuarios de prueba para que el
+     * evaluador pueda probar rapido.
      */
     public MainMenu() {
-        this.userService = new UserService();
-        this.authService = new AuthService(userService);
-        this.itemService = new ItemService();
         seedUsers();
     }
 
     /**
-     * Registra 3 usuarios pre-cargados que el evaluador puede usar:
-     * uno Premium (Angel) y dos Classic (Maria, Pedro).
+     * Registra 3 usuarios pre-cargados: uno Premium (Angel) y dos
+     * Classic (Maria, Pedro).
      */
     private void seedUsers() {
-        userService.register(new PremiumUser(1, "Angel", "angel@mail.com", "1234"));
-        userService.register(new ClassicUser(2, "Maria", "maria@mail.com", "abcd", 5, 3));
-        userService.register(new ClassicUser(3, "Pedro", "pedro@mail.com", "pass", 5, 3));
+        register(new PremiumUser(1, "Angel", "angel@mail.com", "1234"));
+        register(new ClassicUser(2, "Maria", "maria@mail.com", "abcd", 5, 3));
+        register(new ClassicUser(3, "Pedro", "pedro@mail.com", "pass", 5, 3));
+    }
+
+    /**
+     * Guarda (o reemplaza) un usuario en el mapa por su email.
+     *
+     * @param user usuario a registrar
+     */
+    private void register(User user) {
+        usersByEmail.put(user.getEmail(), user);
     }
 
     /**
      * Punto de entrada del menu. Muestra la bienvenida, pide login
-     * y, si es exitoso, entra al bucle principal del menu.
+     * y, si es exitoso, entra al bucle principal.
      */
     public void start() {
         System.out.println("==========================================");
@@ -96,10 +107,8 @@ public class MainMenu {
     }
 
     /**
-     * Pide email + contrasena al usuario, despues pregunta el tipo
-     * (Classic o Premium) y crea/registra una instancia nueva. Si
-     * algun input esta vacio, devuelve {@code false} para indicar
-     * que se cancelo.
+     * Pide email + contrasena, despues pregunta el tipo de usuario
+     * (Classic o Premium) y crea/registra una instancia nueva.
      *
      * @return {@code true} si el login fue exitoso
      */
@@ -121,7 +130,7 @@ public class MainMenu {
         User user = createUserOfChosenType(email, password);
         if (user == null) return false;
 
-        userService.register(user);
+        register(user);
         this.currentUser = user;
 
         System.out.println("\nBienvenido " + user.getName()
@@ -131,8 +140,8 @@ public class MainMenu {
 
     /**
      * Pregunta al usuario si quiere ser Classic o Premium y devuelve
-     * la instancia correspondiente. Si el email ya existe en el
-     * sistema, reusa su id; si no, genera uno nuevo.
+     * la instancia correspondiente. Si el email ya existe, reusa su
+     * id; si no, genera uno nuevo.
      *
      * @param email    email del usuario
      * @param password password del usuario
@@ -153,7 +162,7 @@ public class MainMenu {
             name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
         }
 
-        User existing = userService.findByEmail(email);
+        User existing = usersByEmail.get(email);
         int id = (existing != null) ? existing.getId() : nextUserId.getAndIncrement();
 
         return switch (option) {
@@ -167,9 +176,8 @@ public class MainMenu {
     }
 
     /**
-     * Bucle principal del menu: muestra las opciones y despacha a
-     * los handlers segun la opcion elegida. Solo termina con la
-     * opcion 0.
+     * Bucle principal del menu: muestra opciones y despacha a los
+     * handlers. Solo termina con la opcion 0.
      */
     private void mainLoop() {
         while (true) {
@@ -235,7 +243,7 @@ public class MainMenu {
         Task task = new Task(idCounter.getAndIncrement(), title, desc, priority, currentUser, initialStatus);
 
         if (currentUser.addItem(task)) {
-            itemService.save(task);
+            items.put(task.getId(), task);
             System.out.println("Task creada con ID " + task.getId()
                     + " (estado inicial: " + task.getStatus() + ")");
         }
@@ -268,7 +276,7 @@ public class MainMenu {
         reminder.setNotificationStrategy(strategy);
 
         if (currentUser.addItem(reminder)) {
-            itemService.save(reminder);
+            items.put(reminder.getId(), reminder);
             System.out.println("Reminder creado con ID " + reminder.getId());
         }
     }
@@ -280,14 +288,14 @@ public class MainMenu {
      */
     private void shareItem() {
         System.out.print("ID del item: ");
-        Item item = itemService.findById(readInt());
+        Item item = items.get(readInt());
         if (item == null) { System.out.println("Item no encontrado."); return; }
         if (!item.getOwner().equals(currentUser)) {
             System.out.println("Solo el owner puede compartir.");
             return;
         }
         System.out.print("Email del colaborador: ");
-        User colab = userService.findByEmail(scanner.nextLine().trim());
+        User colab = usersByEmail.get(scanner.nextLine().trim());
         if (colab == null) { System.out.println("Usuario no encontrado."); return; }
         if (colab.equals(currentUser)) { System.out.println("No te podes compartir contigo mismo."); return; }
         currentUser.shareItem(item, colab);
@@ -306,7 +314,7 @@ public class MainMenu {
      */
     private void changeTaskStatus() {
         System.out.print("ID de la Task: ");
-        Item item = itemService.findById(readInt());
+        Item item = items.get(readInt());
         if (!(item instanceof Task task)) { System.out.println("No es una Task valida."); return; }
         System.out.println("Estado actual: " + task.getStatus());
         Status s = readStatus();
@@ -360,7 +368,7 @@ public class MainMenu {
      */
     private void triggerReminder() {
         System.out.print("ID del Reminder: ");
-        Item item = itemService.findById(readInt());
+        Item item = items.get(readInt());
         if (!(item instanceof Reminder r)) { System.out.println("No es un Reminder."); return; }
         r.notifyAlert();
     }
@@ -370,7 +378,7 @@ public class MainMenu {
      * con sus detalles y colaboradores.
      */
     private void listAllItems() {
-        List<Item> all = itemService.findAll();
+        List<Item> all = new ArrayList<>(items.values());
         if (all.isEmpty()) { System.out.println("No hay items."); return; }
         for (Item i : all) {
             i.showDetails();

@@ -1,0 +1,98 @@
+@startuml DiagramaObjetos
+title Diagrama de Objetos - Snapshot del sistema\nDespues de crear una Task compartida y un Reminder
+
+skinparam noteBackgroundColor #FFF2CC
+skinparam noteBorderColor #D6B656
+
+' ============================================
+' USUARIOS (instancias de la jerarquia User)
+' ============================================
+object "angel : PremiumUser" as angel {
+  id = 1
+  name = "Angel"
+  email = "angel@mail.com"
+}
+
+object "maria : ClassicUser" as maria {
+  id = 2
+  name = "Maria"
+  email = "maria@mail.com"
+  limitTask = 5
+  maxCollaborators = 3
+}
+
+object "pedro : ClassicUser" as pedro {
+  id = 3
+  name = "Pedro"
+  email = "pedro@mail.com"
+  limitTask = 5
+  maxCollaborators = 3
+}
+
+' ============================================
+' ITEMS (instancias de la jerarquia Item)
+' ============================================
+object "t1 : Task" as t1 {
+  id = 1
+  title = "Sprint Review"
+  description = "Demo del proyecto"
+  priority = HIGH
+  status = IN_PROGRESS
+}
+
+object "r1 : Reminder" as r1 {
+  id = 2
+  title = "Reunion con cliente"
+  description = "Mostrar el demo"
+  priority = MEDIUM
+  dateTime = "2026-05-20 14:00"
+}
+
+' ============================================
+' STRATEGY (instancia de NotificationStrategy)
+' ============================================
+object "emailStrat : EmailNotification" as email
+
+' ============================================
+' ENLACES (links entre objetos)
+' ============================================
+
+' --- Angel es owner de los dos items ---
+t1 --> angel : owner
+r1 --> angel : owner
+
+' --- Angel tiene los dos items en su lista de creados ---
+angel --> t1 : createdItems
+angel --> r1 : createdItems
+
+' --- t1 esta compartida con Maria y Pedro ---
+t1 --> maria : collaborators
+t1 --> pedro : collaborators
+
+' --- Maria y Pedro tienen t1 en su lista de items compartidos ---
+maria --> t1 : sharedItems
+pedro --> t1 : sharedItems
+
+' --- r1 tiene una EmailNotification como estrategia (Strategy en accion) ---
+r1 --> email : notificationStrategy
+
+' ============================================
+' NOTAS
+' ============================================
+note bottom of t1
+  Snapshot tomado despues de que
+  Maria y Pedro intentaran cambiar
+  el estado en paralelo.
+  Maria entro primero al monitor
+  synchronized; el estado quedo
+  finalmente en IN_PROGRESS.
+end note
+
+note right of email
+  PATRON STRATEGY en runtime:
+  r1 puede cambiar su estrategia
+  a MensajeTextoNotification sin
+  modificar la clase Reminder.
+end note
+
+@enduml

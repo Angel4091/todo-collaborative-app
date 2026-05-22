@@ -25,6 +25,13 @@ public class ClassicUser extends User {
         return true;
     }
 
+    // Chequea el limite SIN agregar el item. Lo usa la UI para
+    // mostrar el error antes de pedir titulo/descripcion/prioridad.
+    @Override
+    public boolean canAddItem() {
+        return createdItems.size() < limitTask;
+    }
+
     // Si el item ya tiene el maximo de colaboradores, no deja agregar mas.
     @Override
     public boolean shareItem(Item item, User user) {

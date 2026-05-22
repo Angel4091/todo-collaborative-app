@@ -16,10 +16,9 @@ src/main/java/org/example/
 │                   ClassicUser, Item, Task, Reminder
 ├── patterns/       NotificationStrategy, EmailNotification,
 │                   MensajeTextoNotification         <-- Strategy
-├── service/        AuthService, UserService
-├── dao/            UserDAO, ItemDAO
+├── service/        AuthService, UserService, ItemService
 ├── thread/         TaskWorker                       <-- concurrencia
-└── ui/             MainMenu, DemoRunner
+└── ui/             MainMenu
 ```
 
 ---

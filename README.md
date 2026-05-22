@@ -99,7 +99,7 @@ En `diagramasUML/` están los archivos `.puml` (PlantUML):
 | `1_diagrama_clases_v2.puml` / `.drawio` | Diagrama de clases del entregable 2 (Strategy + concurrencia). |
 | `2_diagrama_actividad_v2.puml` / `.drawio` | Actividad: cambiar estado de una Task (`modifyStatus`) con 4 swimlanes (Sistema, Colaboradores, Hilo-Maria, Hilo-Pedro). |
 | `3_secuencia_cambiar_estado.puml` / `.drawio` | Secuencia: cambiar el estado de una task con `par + synchronized` y los hilos compitiendo por el monitor. |
-| `4_diagrama_objetos.puml` | Diagrama de objetos: snapshot del sistema con instancias concretas (Angel, Maria, Pedro, una Task compartida y un Reminder con Strategy). |
+| `4_diagrama_objetos.puml` / `.drawio` | Diagrama de objetos: snapshot del sistema con instancias concretas (Angel, Maria, Pedro, una Task compartida y un Reminder con Strategy). |
 
 Para visualizarlos: extensión **PlantUML** en VS Code (para `.puml`), draw.io en https://app.diagrams.net (para `.drawio`), o pegar el contenido `.puml` en https://plantuml.com/plantuml.
 

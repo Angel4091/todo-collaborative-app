@@ -1,11 +1,12 @@
 @startuml DiagramaObjetos
-title Diagrama de Objetos - Snapshot del sistema\nDespues de crear una Task compartida y un Reminder
+title Diagrama de Objetos\nBasado en el diagrama de clases v2 (Strategy + Concurrencia)
 
 skinparam noteBackgroundColor #FFF2CC
 skinparam noteBorderColor #D6B656
 
 ' ============================================
-' USUARIOS (instancias de la jerarquia User)
+' INSTANCIAS DE LA JERARQUIA User
+' (PremiumUser y ClassicUser extienden User)
 ' ============================================
 object "angel : PremiumUser" as angel {
   id = 1
@@ -30,7 +31,8 @@ object "pedro : ClassicUser" as pedro {
 }
 
 ' ============================================
-' ITEMS (instancias de la jerarquia Item)
+' INSTANCIAS DE LA JERARQUIA Item
+' (Task y Reminder extienden Item)
 ' ============================================
 object "t1 : Task" as t1 {
   id = 1
@@ -49,50 +51,72 @@ object "r1 : Reminder" as r1 {
 }
 
 ' ============================================
-' STRATEGY (instancia de NotificationStrategy)
+' INSTANCIA DE NotificationStrategy (Strategy)
 ' ============================================
 object "emailStrat : EmailNotification" as email
 
 ' ============================================
-' ENLACES (links entre objetos)
+' INSTANCIAS DE TaskWorker (concurrencia)
+' Implementan Runnable y modifican Task
+' ============================================
+object "workerMaria : TaskWorker" as wm {
+  newStatus = IN_PROGRESS
+}
+
+object "workerPedro : TaskWorker" as wp {
+  newStatus = COMPLETED
+}
+
+' ============================================
+' LINKS - reflejan las relaciones del diagrama de clases
 ' ============================================
 
-' --- Angel es owner de los dos items ---
+' User "1" o-- "0..*" Item : posee
+angel --> t1 : createdItems
+angel --> r1 : createdItems
 t1 --> angel : owner
 r1 --> angel : owner
 
-' --- Angel tiene los dos items en su lista de creados ---
-angel --> t1 : createdItems
-angel --> r1 : createdItems
-
-' --- t1 esta compartida con Maria y Pedro ---
+' Item.collaborators (Shareable)
 t1 --> maria : collaborators
 t1 --> pedro : collaborators
-
-' --- Maria y Pedro tienen t1 en su lista de items compartidos ---
 maria --> t1 : sharedItems
 pedro --> t1 : sharedItems
 
-' --- r1 tiene una EmailNotification como estrategia (Strategy en accion) ---
+' Reminder "1" o-- "1" NotificationStrategy : usa
 r1 --> email : notificationStrategy
+
+' TaskWorker ..> Task : modifica concurrentemente
+wm ..> t1 : task
+wp ..> t1 : task
+
+' TaskWorker ..> User : representa
+wm ..> maria : user
+wp ..> pedro : user
 
 ' ============================================
 ' NOTAS
 ' ============================================
 note bottom of t1
-  Snapshot tomado despues de que
-  Maria y Pedro intentaran cambiar
-  el estado en paralelo.
-  Maria entro primero al monitor
-  synchronized; el estado quedo
-  finalmente en IN_PROGRESS.
+  Despues de que workerMaria y
+  workerPedro corrieran en hilos
+  paralelos, Maria entro primero
+  al synchronized. El status final
+  quedo en IN_PROGRESS.
 end note
 
 note right of email
-  PATRON STRATEGY en runtime:
-  r1 puede cambiar su estrategia
-  a MensajeTextoNotification sin
-  modificar la clase Reminder.
+  PATRON STRATEGY:
+  r1 puede cambiar de EmailNotification
+  a MensajeTextoNotification en runtime
+  sin tocar la clase Reminder.
+end note
+
+note bottom of wp
+  Los dos TaskWorker compiten por
+  el monitor de t1. synchronized en
+  Task.modifyStatus los serializa
+  automaticamente.
 end note
 
 @enduml

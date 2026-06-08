@@ -1,0 +1,269 @@
+@startuml DiagramaClasesV3
+title Diagrama de Clases v3 - Entregable 3\nUI (JavaFX) + Persistencia (BD) + ShareTask + Strategy + Concurrencia
+
+' ============================================
+' ENUMS
+' ============================================
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum Status {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+}
+
+' ============================================
+' INTERFACES BASE
+' ============================================
+interface Authenticable {
+  +authenticate(email: String, password: String): boolean
+}
+
+interface Shareable {
+  +addCollaborator(user: User): void
+  +showCollaborators(): void
+  +isShared(): boolean
+}
+
+' ============================================
+' PATRON STRATEGY (unico patron del proyecto)
+' ============================================
+interface NotificationStrategy {
+  +notify(message: String): void
+}
+
+class EmailNotification implements NotificationStrategy {
+  +notify(message: String): void
+}
+
+class MensajeTextoNotification implements NotificationStrategy {
+  +notify(message: String): void
+}
+
+' ============================================
+' JERARQUIA USER
+' ============================================
+abstract class User implements Authenticable {
+  -id: int
+  -name: String
+  -email: String
+  -password: String
+  -createdItems: List<Item>
+  -sharedItems: List<Item>
+  +authenticate(email: String, password: String): boolean
+  +addItem(item: Item): boolean
+  +shareItem(item: Item, user: User): boolean
+}
+
+class PremiumUser extends User {
+  +fullAccess(): boolean
+}
+
+class ClassicUser extends User {
+  -limitTask: int
+  -maxCollaborators: int
+  +addItem(item: Item): boolean
+  +shareItem(item: Item, user: User): boolean
+}
+
+' ============================================
+' JERARQUIA ITEM (con concurrencia)
+' ============================================
+abstract class Item implements Shareable {
+  #id: int
+  #title: String
+  #description: String
+  #priority: Priority
+  #owner: User
+  #collaborators: List<User>
+  +{synchronized} addCollaborator(user: User): void
+  +{synchronized} removeCollaborator(user: User): void
+  +{abstract} showDetails(): void
+}
+
+class Task extends Item {
+  -status: Status
+  +getStatus(): Status
+  +{synchronized} modifyStatus(newStatus: Status): void
+}
+
+class Reminder extends Item {
+  -dateTime: String
+  -notificationStrategy: NotificationStrategy
+  +getDateTime(): String
+  +notifyAlert(): void
+  +setNotificationStrategy(strategy: NotificationStrategy): void
+}
+
+' ============================================
+' CONCURRENCIA
+' ============================================
+class TaskWorker implements Runnable {
+  -task: Task
+  -newStatus: Status
+  -user: User
+  +run(): void
+}
+
+' ============================================
+' SHARE TASK (gestor de flujo - viene del diagrama de actividad)
+' ============================================
+class ShareTask {
+  -taskActual: Task
+  -estaSiendoEditado: boolean
+  +crearTarea(title: String, desc: String, prioridad: Priority): Task
+  +solicitarDatos(): void
+  +compartirTarea(task: Task, colaborador: User): void
+  +agregarColaboradores(task: Task, users: List<User>): void
+  +guardarTarea(task: Task): void
+  +cambiarEstado(task: Task, newStatus: Status): void
+  +isBeingEdited(): boolean
+}
+
+' ============================================
+' PERSISTENCIA (entregable 3 - base de datos)
+' ============================================
+class DatabaseConnection {
+  -url: String
+  -username: String
+  -password: String
+  +getConnection(): Connection
+  +closeConnection(): void
+}
+
+class TaskRepository {
+  -connection: DatabaseConnection
+  +save(task: Task): void
+  +findById(id: int): Task
+  +findAll(): List<Task>
+  +update(task: Task): void
+  +delete(id: int): void
+}
+
+class UserRepository {
+  -connection: DatabaseConnection
+  +save(user: User): void
+  +findByEmail(email: String): User
+  +findAll(): List<User>
+}
+
+class ReminderRepository {
+  -connection: DatabaseConnection
+  +save(reminder: Reminder): void
+  +findAll(): List<Reminder>
+  +update(reminder: Reminder): void
+}
+
+' ============================================
+' UI - JAVAFX (entregable 3 - interfaz grafica)
+' ============================================
+class MainApp {
+  +start(stage: Stage): void
+  +{static} main(args: String[]): void
+}
+
+class LoginController {
+  -emailField: TextField
+  -passwordField: PasswordField
+  -userTypeGroup: ToggleGroup
+  +handleLogin(): void
+}
+
+class HomeController {
+  -taskListView: ListView<Item>
+  -searchField: TextField
+  -btnNuevo: Button
+  +initialize(): void
+  +loadItems(): void
+  +onCreateTask(): void
+  +onCreateReminder(): void
+}
+
+class TaskCellFactory {
+  +call(listView: ListView<Item>): ListCell<Item>
+}
+
+class CreateTaskDialog {
+  -tituloField: TextField
+  -descField: TextArea
+  -prioridadCombo: ComboBox<Priority>
+  +show(): Optional<Task>
+}
+
+' ============================================
+' RELACIONES
+' ============================================
+
+' --- Dominio existente ---
+User "1" o-- "0..*" Item : posee >
+Item "1" *-- "1" Priority
+Task "1" *-- "1" Status
+Reminder "1" o-- "1" NotificationStrategy : usa >
+TaskWorker ..> Task : modifica\nconcurrentemente >
+TaskWorker ..> User : representa >
+
+' --- ShareTask (orquestador del flujo de la actividad) ---
+ShareTask --> Task : maneja >
+ShareTask ..> User : agrega colaborador >
+ShareTask ..> TaskWorker : lanza para\ncambiar estado >
+
+' --- Persistencia (NUEVO en entregable 3) ---
+TaskRepository --> Task : persiste >
+UserRepository --> User : persiste >
+ReminderRepository --> Reminder : persiste >
+TaskRepository --> DatabaseConnection
+UserRepository --> DatabaseConnection
+ReminderRepository --> DatabaseConnection
+
+' --- UI JavaFX (NUEVO en entregable 3) ---
+MainApp --> LoginController : carga al inicio >
+LoginController --> UserRepository : valida >
+HomeController --> ShareTask : delega operaciones >
+HomeController --> TaskRepository : carga lista >
+HomeController ..> TaskCellFactory : usa para celdas >
+HomeController ..> CreateTaskDialog : abre modal >
+TaskCellFactory ..> Item : renderiza\ncon colores >
+
+' ============================================
+' NOTAS
+' ============================================
+note right of NotificationStrategy
+  PATRON STRATEGY:
+  unico patron de diseno del proyecto.
+end note
+
+note bottom of Task
+  CONCURRENCIA:
+  modifyStatus() es synchronized.
+  El JVM bloquea hilos competidores.
+end note
+
+note right of ShareTask
+  Gestor del flujo de "compartir tarea"
+  que aparece en el diagrama de actividad.
+  Coordina: crear -> solicitar datos ->
+  compartir -> agregar colaboradores ->
+  guardar -> cambiar estado.
+end note
+
+note right of TaskRepository
+  NUEVO en entregable 3:
+  capa de persistencia con BD.
+  Cada Repository es un DAO que
+  ejecuta SQL via DatabaseConnection.
+end note
+
+note bottom of HomeController
+  NUEVO en entregable 3:
+  UI JavaFX con ListView.
+  TaskCellFactory aplica:
+  - Color segun prioridad
+  - Icono distinto para Reminder
+end note
+
+@enduml

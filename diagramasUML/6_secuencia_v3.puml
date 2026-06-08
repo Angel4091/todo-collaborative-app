@@ -1,0 +1,81 @@
+@startuml SecuenciaV3
+title Diagrama de Secuencia v3\nBasado en el diagrama de actividad (Usuario, Task, Sistema)
+
+skinparam noteBackgroundColor #FFF2CC
+skinparam noteBorderColor #D6B656
+
+actor Usuario as U
+participant "task:Task" as task
+participant ":Sistema" as sistema
+
+== 1. Crear y configurar la tarea ==
+
+U -> task : crearTarea(titulo, descripcion, prioridad)
+activate task
+task --> U : task creada
+deactivate task
+
+U -> task : solicitarDatos()
+activate task
+task --> U : datos solicitados
+deactivate task
+
+== 2. Compartir y agregar colaboradores ==
+
+U -> task : compartirTarea()
+activate task
+
+U -> task : agregarColaboradores(maria, pedro)
+note right of task
+  El usuario agrega
+  los colaboradores que
+  tendran acceso a la task.
+end note
+
+task -> task : guardarTarea()
+note right of task
+  La task se persiste
+  con todos sus datos
+  y colaboradores.
+end note
+
+task --> U : tarea guardada
+
+== 3. Solicitar actualizacion de estado ==
+
+task -> sistema : solicitarActualizarEstado(task)
+activate sistema
+deactivate task
+
+== 4. Monitoreo y cambio de estado ==
+
+loop Monitorear cambios de estado
+    sistema -> sistema : monitorearCambios()
+
+    alt Estado siendo editado
+        sistema -> task : cambiarEstado(newStatus)
+        activate task #LightGreen
+        note right of task
+          Entra al metodo
+          synchronized modifyStatus().
+          Solo un hilo entra a la vez.
+        end note
+        task -> task : modifyStatus(newStatus)
+        task --> sistema : estado cambiado
+        deactivate task
+    else No esta siendo editado
+        sistema -> sistema : esperarFinalizacion()
+        note right of sistema
+          Sigue monitoreando
+          hasta que el monitor
+          de la task quede libre.
+        end note
+    end
+end
+
+== 5. Notificacion final ==
+
+sistema -> U : notificarCambioEstado()
+deactivate sistema
+
+@enduml

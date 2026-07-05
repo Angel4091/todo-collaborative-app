@@ -1,81 +1,95 @@
 @startuml SecuenciaV3
-title Diagrama de Secuencia v3\nBasado en el diagrama de actividad (Usuario, Task, Sistema)
+title Diagrama de Secuencia v3\nBasado en el diagrama de actividad (Usuario / Task / Sistema)
 
 skinparam noteBackgroundColor #FFF2CC
 skinparam noteBorderColor #D6B656
 
-actor Usuario as U
+actor "Usuario" as U
 participant "task:Task" as task
 participant ":Sistema" as sistema
 
-== 1. Crear y configurar la tarea ==
+== 1. Crear tarea ==
 
-U -> task : crearTarea(titulo, descripcion, prioridad)
+U -> task : crearTarea()
 activate task
 task --> U : task creada
 deactivate task
 
-U -> task : solicitarDatos()
+== 2. Solicitar datos ==
+
+U -> task : solicitarDatos(titulo, descripcion, prioridad)
 activate task
-task --> U : datos solicitados
+note right of task
+  El usuario completa el
+  formulario con los datos
+  basicos de la tarea.
+end note
+task --> U : datos guardados
 deactivate task
 
-== 2. Compartir y agregar colaboradores ==
+== 3. Compartir tarea ==
 
 U -> task : compartirTarea()
 activate task
+task --> U : listo para compartir
+deactivate task
 
-U -> task : agregarColaboradores(maria, pedro)
+== 4. Anadir colaboradores ==
+
+U -> task : anadirColaboradores(maria, pedro)
+activate task
 note right of task
-  El usuario agrega
-  los colaboradores que
-  tendran acceso a la task.
+  Se agregan Maria y Pedro
+  como colaboradores.
 end note
+
+== 5. Task guarda y solicita actualizar estado ==
 
 task -> task : guardarTarea()
 note right of task
-  La task se persiste
-  con todos sus datos
-  y colaboradores.
+  Persiste la task junto
+  con la lista de colaboradores.
 end note
-
-task --> U : tarea guardada
-
-== 3. Solicitar actualizacion de estado ==
 
 task -> sistema : solicitarActualizarEstado(task)
 activate sistema
 deactivate task
 
-== 4. Monitoreo y cambio de estado ==
+== 6. Monitoreo con loop + alt (del diagrama de actividad) ==
 
-loop Monitorear cambios de estado
+loop hasta que el estado quede libre
     sistema -> sistema : monitorearCambios()
 
-    alt Estado siendo editado
-        sistema -> task : cambiarEstado(newStatus)
-        activate task #LightGreen
-        note right of task
-          Entra al metodo
-          synchronized modifyStatus().
-          Solo un hilo entra a la vez.
+    alt Estado siendo editado?
+        note over sistema #FFE6E6
+          NO: hay que esperar
         end note
-        task -> task : modifyStatus(newStatus)
-        task --> sistema : estado cambiado
-        deactivate task
-    else No esta siendo editado
         sistema -> sistema : esperarFinalizacion()
         note right of sistema
           Sigue monitoreando
-          hasta que el monitor
-          de la task quede libre.
+          hasta que se libere.
         end note
+    else Estado disponible
+        note over sistema #D5E8D4
+          SI: se puede cambiar
+        end note
+        sistema -> task : cambiarEstado(newStatus)
+        activate task #LightGreen
+        task -> task : modifyStatus(newStatus) <<synchronized>>
+        task --> sistema : estado cambiado
+        deactivate task
     end
 end
 
-== 5. Notificacion final ==
+== 7. Notificar cambio de estado ==
 
-sistema -> U : notificarCambioEstado()
+sistema -> U : notificarCambioEstado(task)
 deactivate sistema
+
+note over U, sistema
+  El flujo termina cuando el
+  usuario recibe la notificacion
+  del cambio de estado.
+end note
 
 @enduml
